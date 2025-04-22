@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Salas de Ambulatório</title>
+</head>
+
+<body>
+
+    <h1>Salas de Ambulatório</h1>
+
+    {% if sala_equipamentos %}
+
+        {% regroup sala_equipamentos by sala.andar as agrupamento_andares %}
+
+        {% for grupo in agrupamento_andares %}
+           
+            <h2 style="margin-left: 30px;">{{ grupo.grouper }}. Andar</h2>
+
+            {% regroup grupo.list by sala as agrupamento_salas %}
+
+            {% for sala in agrupamento_salas %}
+
+                <p style="margin-left: 60px;">
+
+                    <strong>Sala: {{ sala.grouper.nome }} <br> Função: {{ sala.grouper.funcao }} <br> Equipamentos:
+
+                        {% with sala.list|dictsort:"equipamento.nome" as equipamentos_ordenados %}
+
+                            {% for item in equipamentos_ordenados %}
+
+                                {{ item.equipamento.nome }}{% if not forloop.last %} / {% endif %}
+
+                            {% endfor %}
+                        
+                        {% endwith %}
+
+                    </strong>
+
+                </p>
+                
+            {% endfor %}
+        
+        {% endfor %}
+
+    {% else %}
+    
+        <p>Nenhuma sala encontrada.</p>
+    
+    {% endif %}
+
+</body>
+
+</html>
+
+<!--
+========================================================================
+========================================================================
+
+<!-- <!DOCTYPE html>
+
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Salas de Ambulatório</title>
+</head>
+
+<body>
+
+    <h1>Salas de Ambulatório</h1>
+
+    {% if sala_equipamentos %}
+
+        {% regroup sala_equipamentos by sala.andar as agrupamento_andares %}
+
+        {% for grupo in agrupamento_andares %}
+
+            <h2 style="margin-left: 30px;">{{ grupo.grouper }}. Andar</h2>
+
+            {% regroup grupo.list by sala as agrupamento_salas %}
+
+            {% for sala in agrupamento_salas %}
+                <p style="margin-left: 60px;">
+                    <strong>Sala: {{ sala.grouper.nome }} <br> Função: {{ sala.grouper.funcao.nome }} <br> Equipamento(s):
+                        {% for item in sala.list %}
+                            {{ item.equipamento.nome }}{% if not forloop.last %} / {% endif %}
+                        {% endfor %}
+                    </strong>
+                </p>
+            {% endfor %}
+
+        {% endfor %}
+
+    {% else %}
+
+        <p>Nenhuma sala encontrada.</p>
+
+    {% endif %}
+
+</body>
+
+</html>
+
+========================================================================
+
+<!DOCTYPE html>
+
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Salas de Ambulatório</title>
+</head>
+
+<body>
+
+    <h1>Salas de Ambulatório</h1>
+
+    {% if sala_equipamentos %}
+
+        {% regroup sala_equipamentos by sala.andar as agrupamento_andares %}
+
+        {% for grupo in agrupamento_andares %}
+           
+            <h2 style="margin-left: 30px;">{{ grupo.grouper }}. Andar</h2>
+
+            {% for item in grupo.list %}
+                <p style="margin-left: 60px;">
+                    <strong>{{ item.sala.nome }} | {{ item.equipamento.nome }} | {{ item.sala.funcao }}</strong>
+                </p>
+            {% endfor %}
+        
+        {% endfor %}
+
+    {% else %}
+    
+        <p>Nenhuma sala encontrada.</p>
+    
+    {% endif %}
+
+</body>
+
+</html>
+-->
