@@ -94,6 +94,7 @@ from datetime import datetime, timedelta
 class AgendamentoSala(models.Model):
     profissional = models.ForeignKey('Profissional', on_delete=models.CASCADE)
     sala = models.ForeignKey('Sala', on_delete=models.CASCADE)
+    data_agendamento = models.DateField(default='2025-01-01')
     horario_inicio = models.TimeField()
     horario_final = models.TimeField(editable=False)
 
@@ -102,9 +103,8 @@ class AgendamentoSala(models.Model):
         if not parametros:
             raise ValueError(f"Profissional {self.profissional} sem parâmetros.")
 
-        minutos_totais = parametros.n_nc * parametros.t_nc + parametros.n_ret * parametros.t_ret
         inicio = datetime.combine(datetime.today(), self.horario_inicio)
-        self.horario_final = (inicio + timedelta(minutes=minutos_totais)).time()
+        self.horario_final = (inicio + timedelta(minutes=(parametros.n_nc * parametros.t_nc + parametros.n_ret * parametros.t_ret))).time()
 
         super().save(*args, **kwargs)
 

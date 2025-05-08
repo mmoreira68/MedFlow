@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="text-center">
+    <h1 class="mb-4">Bem-vindo ao <strong>MedFlow</strong></h1>
+    <p class="lead mb-5">
+        Sistema de Gestão de Salas Hospitalares com foco em organização e eficiência.
+    </p>
+    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-5">
+        <a href="{% url 'login' %}" class="btn btn-primary btn-lg px-4 gap-3">Acessar o Sistema</a>
+        <a href="{% url 'visualizar_agendamentos' %}" class="btn btn-outline-success btn-lg px-4">Ver Agendamentos do Dia</a>
+    </div>
+</div>
+{% endblock %}

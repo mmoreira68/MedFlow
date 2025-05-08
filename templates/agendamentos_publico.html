@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4 text-center">Agendamentos de Hoje</h2>
+
+    {% if agendamentos %}
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead class="table-primary">
+                <tr>
+                    <th>Andar</th>
+                    <th>Sala</th>
+                    <th>Função</th>
+                    <th>Profissional</th>
+                    <th>Especialidade</th>
+                    <th>Início</th>
+                    <th>Término</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for agendamento in agendamentos %}
+                <tr>
+                    <td>{{ agendamento.sala.andar.numero }}º</td>
+                    <td>{{ agendamento.sala.nome }}</td>
+                    <td>{{ agendamento.sala.funcao.nome }}</td>
+                    <td>{{ agendamento.profissional.nome }}</td>
+                    <td>{{ agendamento.profissional.especialidade }}</td>
+                    <td>{{ agendamento.horario_inicio }}</td>
+                    <td>{{ agendamento.horario_final }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center">
+        Nenhum agendamento registrado para hoje.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
