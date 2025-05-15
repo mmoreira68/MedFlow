@@ -1,12 +1,11 @@
 {% extends 'base.html' %}
-
 {% block content %}
-<div class="container">
-    <h2>Agendar Sala: {{ sala.nome }}</h2>
+<div class="container mt-4">
+    <h2>{{ titulo }}</h2>
+    <p>{{ descricao }}</p>
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-success">Salvar Agendamento</button>
+        <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
         <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancelar</a>
     </form>
 </div>

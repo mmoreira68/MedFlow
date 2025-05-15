@@ -1,42 +1,40 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container">
-    <h2 class="mb-4 text-center">Agendamentos de Hoje</h2>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">Agendamentos - <span class="text-primary">{{ data|date:"d/m/Y" }}</span></h2>
+        <form method="get" class="d-flex align-items-center">
+            <input type="date" name="data" class="form-control me-2" value="{{ data|date:'Y-m-d' }}">
+            <button type="submit" class="btn btn-outline-primary">Ir para data</button>
+        </form>
+        <div>
+            <a href="?data={{ data_anterior|date:'Y-m-d' }}" class="btn btn-outline-secondary me-1">&larr; Dia anterior</a>
+            <a href="?data={{ data_posterior|date:'Y-m-d' }}" class="btn btn-outline-secondary">Próximo dia &rarr;</a>
+        </div>
+    </div>
 
     {% if agendamentos %}
-    <div class="table-responsive">
-        <table class="table table-striped align-middle">
-            <thead class="table-primary">
-                <tr>
-                    <th>Andar</th>
-                    <th>Sala</th>
-                    <th>Função</th>
-                    <th>Profissional</th>
-                    <th>Especialidade</th>
-                    <th>Início</th>
-                    <th>Término</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for agendamento in agendamentos %}
-                <tr>
-                    <td>{{ agendamento.sala.andar.numero }}º</td>
-                    <td>{{ agendamento.sala.nome }}</td>
-                    <td>{{ agendamento.sala.funcao.nome }}</td>
-                    <td>{{ agendamento.profissional.nome }}</td>
-                    <td>{{ agendamento.profissional.especialidade }}</td>
-                    <td>{{ agendamento.horario_inicio }}</td>
-                    <td>{{ agendamento.horario_final }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    {% regroup agendamentos by sala as ag_por_sala %}
+    {% for grupo in ag_por_sala %}
+    <div class="card mb-3">
+        <div class="card-header bg-light">
+            <strong>{{ grupo.grouper.nome }}</strong> ({{ grupo.grouper.funcao.nome }})
+        </div>
+        <ul class="list-group list-group-flush">
+            {% for ag in grupo.list %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>{{ ag.profissional.nome }}</strong> - {{ ag.profissional.especialidade }}
+                </div>
+                <span class="badge bg-primary">{{ ag.horario_inicio|time:"H:i" }} &rarr; {{ ag.horario_final|time:"H:i" }}</span>
+            </li>
+            {% endfor %}
+        </ul>
     </div>
+    {% endfor %}
     {% else %}
-    <div class="alert alert-info text-center">
-        Nenhum agendamento registrado para hoje.
-    </div>
+    <div class="alert alert-info">Nenhum agendamento encontrado para esta data.</div>
     {% endif %}
 </div>
 {% endblock %}

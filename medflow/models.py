@@ -103,8 +103,22 @@ class AgendamentoSala(models.Model):
         if not parametros:
             raise ValueError(f"Profissional {self.profissional} sem parâmetros.")
 
-        inicio = datetime.combine(datetime.today(), self.horario_inicio)
+        # Calcula horário final
+        inicio = datetime.combine(self.data_agendamento, self.horario_inicio)
         self.horario_final = (inicio + timedelta(minutes=(parametros.n_nc * parametros.t_nc + parametros.n_ret * parametros.t_ret))).time()
+
+        # Verifica conflitos de horário na mesma sala e dia
+        conflitos = AgendamentoSala.objects.filter(
+            sala=self.sala,
+            data_agendamento=self.data_agendamento
+        ).exclude(pk=self.pk)
+
+        for ag in conflitos:
+            if (
+                self.horario_inicio < ag.horario_final and
+                self.horario_final > ag.horario_inicio
+            ):
+                raise ValueError("Conflito de horário detectado com outro agendamento.")
 
         super().save(*args, **kwargs)
 

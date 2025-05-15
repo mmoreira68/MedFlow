@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">Agendamentos - <span class="text-primary">{{ data|date:"d/m/Y" }}</span></h2>
+        <div class="d-flex align-items-center gap-2">
+            <a href="?data={{ data_anterior|date:'Y-m-d' }}" class="btn btn-outline-secondary">&larr; Anterior</a>
+            <form method="get" class="d-flex align-items-center">
+                <input type="date" name="data" class="form-control" value="{{ data|date:'Y-m-d' }}">
+                <button type="submit" class="btn btn-outline-primary ms-2">Ir para data</button>
+            </form>
+            <a href="?data={{ data_posterior|date:'Y-m-d' }}" class="btn btn-outline-secondary">Próximo &rarr;</a>
+
+            {% if user.is_authenticated %}
+            <a href="{% url 'novo_agendamento' %}" class="btn btn-success ms-3">+ Agendar</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <form method="get" class="row g-3 align-items-center mb-4">
+        <div class="col-auto">
+            <label for="profissional" class="form-label">Profissional</label>
+            <select name="profissional" id="profissional" class="form-select">
+                <option value="">Todos</option>
+                {% for p in profissionais %}
+                <option value="{{ p.id }}" {% if p.id|stringformat:'s' == profissional_id %}selected{% endif %}>{{ p.nome }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-auto">
+            <label for="sala" class="form-label">Sala</label>
+            <select name="sala" id="sala" class="form-select">
+                <option value="">Todas</option>
+                {% for s in salas %}
+                <option value="{{ s.id }}" {% if s.id|stringformat:'s' == sala_id %}selected{% endif %}>{{ s.nome }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-auto align-self-end">
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+        </div>
+    </form>
+
+    {% if agendamentos %}
+        {% regroup agendamentos by sala as ag_por_sala %}
+        {% for grupo in ag_por_sala %}
+        <div class="card mb-3">
+            <div class="card-header bg-light">
+                <strong>{{ grupo.grouper.nome }}</strong> ({{ grupo.grouper.funcao.nome }})
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for ag in grupo.list %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ ag.profissional.nome }}</strong> - {{ ag.profissional.especialidade }}
+                    </div>
+                    <span class="badge bg-primary">{{ ag.horario_inicio|time:"H:i" }} &rarr; {{ ag.horario_final|time:"H:i" }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info">Nenhum agendamento encontrado para esta data.</div>
+    {% endif %}
+</div>
+{% endblock %}
