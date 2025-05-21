@@ -82,6 +82,14 @@ class FuncionalidadeForm(forms.ModelForm):
         fields = ['nome']
 
 # ------------------------------
+# FORMULÁRIO DE EQUIPAMENTO
+# ------------------------------
+class EquipamentoForm(forms.ModelForm):
+    class Meta:
+        model = Equipamento
+        fields = ['nome']
+
+# ------------------------------
 # FORMULÁRIO DE PARÂMETROS DO PROFISSIONAL
 # ------------------------------
 DIAS_SEMANA = [

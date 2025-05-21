@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import configurar_profissional, criar_andar, criar_sala, criar_profissional, criar_funcionalidade, editar_funcionalidade, excluir_funcionalidade
+from .views import configurar_profissional, criar_andar, criar_sala, criar_profissional, criar_funcionalidade, editar_funcionalidade, excluir_funcionalidade, criar_equipamento, editar_equipamento, excluir_equipamento
 from . import views
 
 urlpatterns = [
@@ -14,10 +14,14 @@ urlpatterns = [
     path('criar-andar/', criar_andar, name='criar_andar'),    
     path('andar/editar/<int:pk>/', views.editar_andar, name='editar_andar'),
     path('andar/excluir/<int:pk>/', views.excluir_andar, name='excluir_andar'),
-    # CRUD de Andar
+    # CRUD de Funcionalidade
     path('criar-funcionalidade/', criar_funcionalidade, name='criar_funcionalidade'),    
     path('funcionalidade/editar/<int:pk>/', editar_funcionalidade, name='editar_funcionalidade'),
     path('funcionalidade/excluir/<int:pk>/', excluir_funcionalidade, name='excluir_funcionalidade'),
+    # CRUD de Equipamento
+    path('criar-equipamento/', criar_equipamento, name='criar_equipamento'),    
+    path('equipamento/editar/<int:pk>/', editar_equipamento, name='editar_equipamento'),
+    path('equipamento/excluir/<int:pk>/', excluir_equipamento, name='excluir_equipamento'),
     # CRUD de Sala
     path('criar-sala/<int:andar_id>/', criar_sala, name='criar_sala'),
     path('sala/editar/<int:pk>/', views.editar_sala, name='editar_sala'),

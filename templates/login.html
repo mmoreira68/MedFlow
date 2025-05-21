@@ -1,33 +1,44 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card shadow-sm p-4">
-            <h2 class="text-center mb-4">Acesso ao Sistema</h2>
-
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-danger" role="alert">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-
-            <form method="post">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <label for="email" class="form-label">Usuário (Email)</label>
-                    <input type="text" name="email" id="email" class="form-control" required>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="row shadow-sm rounded border overflow-hidden">
+                <!-- Lado da imagem -->
+                <div class="col-md-6 bg-light d-flex align-items-center justify-content-center">
+                    <img src="{% static 'image/logo_medflow.png' %}" alt="Logo do Sistema" class="img-fluid p-4" style="max-height: 300px;">
                 </div>
 
-                <div class="mb-3">
-                    <label for="senha" class="form-label">Senha</label>
-                    <input type="password" name="senha" id="senha" class="form-control" required>
-                </div>
+                <!-- Lado do formulário -->
+                <div class="col-md-6 p-4 bg-white">
+                    <h2 class="text-center mb-4">Acesso ao Sistema</h2>
 
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-primary btn-lg">Entrar</button>
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-danger" role="alert">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Usuário (Email)</label>
+                            <input type="text" name="email" id="email" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="senha" class="form-label">Senha</label>
+                            <input type="password" name="senha" id="senha" class="form-control" required>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Entrar</button>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>

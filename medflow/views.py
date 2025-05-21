@@ -4,8 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from datetime import datetime, date, timedelta
 from datetime import date
-from .models import Andar, Funcionalidade, ProfissionalDiasAtendimento, ProfissionalEquipamento, ProfissionalParametros, Sala, AgendamentoSala, Profissional
-from .forms import AgendamentoSalaForm, AndarForm, FuncionalidadeForm, ProfissionalForm, SalaForm
+from .models import Andar, Funcionalidade, Equipamento, ProfissionalDiasAtendimento, ProfissionalEquipamento, ProfissionalParametros, Sala, AgendamentoSala, Profissional
+from .forms import AgendamentoSalaForm, AndarForm, FuncionalidadeForm, ProfissionalForm, SalaForm, EquipamentoForm, ParametrosProfissionalForm
 
 # Página inicial
 def home(request):
@@ -53,11 +53,13 @@ def dashboard(request):
     andares = Andar.objects.prefetch_related('sala_set').all()
     profissionais = Profissional.objects.all()
     funcionalidades = Funcionalidade.objects.all()
+    equipamentos = Equipamento.objects.all()
 
     return render(request, 'dashboard.html', {
         'andares': andares,
         'profissionais': profissionais,
         'funcionalidades': funcionalidades,
+        'equipamentos': equipamentos,
     })
 
 # Agendar sala (acessado a partir do dashboard)
@@ -128,6 +130,17 @@ def criar_sala(request, andar_id):
     return render(request, 'form_generic.html', {'form': form, 'titulo': 'Criar Sala'})
 
 @login_required
+def criar_equipamento(request):
+    if request.method == 'POST':
+        form = EquipamentoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('dashboard')
+    else:
+        form = EquipamentoForm()
+    return render(request, 'form_generic.html', {'form': form, 'titulo': 'Criar Equipamento'})
+
+@login_required
 def criar_profissional(request):
     if request.method == 'POST':
         form = ProfissionalForm(request.POST)
@@ -140,7 +153,6 @@ def criar_profissional(request):
 
 @login_required
 def criar_funcionalidade(request):
-    from .forms import FuncionalidadeForm
 
     if request.method == 'POST':
         form = FuncionalidadeForm(request.POST)
@@ -155,13 +167,38 @@ def criar_funcionalidade(request):
 def configurar_profissional(request):
     from .forms import ParametrosProfissionalForm
 
-    if request.method == 'POST':
+    profissional_id = request.GET.get('prof')
+
+    # Se for uma edição
+    if request.method == 'GET' and profissional_id:
+        profissional = get_object_or_404(Profissional, pk=profissional_id)
+
+        # Tenta buscar os dados salvos
+        try:
+            parametros = profissional.profissionalparametros
+            dias = profissional.profissionaldiasatendimento_set.values_list('dia_semana', flat=True)
+            equipamentos = profissional.profissionalequipamento_set.values_list('equipamento', flat=True)
+
+            form = ParametrosProfissionalForm(initial={
+                'profissional': profissional,
+                'n_nc': parametros.n_nc,
+                't_nc': parametros.t_nc,
+                'n_ret': parametros.n_ret,
+                't_ret': parametros.t_ret,
+                'dias_atendimento': list(dias),
+                'equipamentos': list(equipamentos),
+            })
+
+        except ProfissionalParametros.DoesNotExist:
+            # Se não tem dados ainda, form padrão
+            form = ParametrosProfissionalForm(initial={'profissional': profissional})
+    elif request.method == 'POST':
         form = ParametrosProfissionalForm(request.POST)
         if form.is_valid():
             profissional = form.cleaned_data['profissional']
 
-            # Cadastra ou atualiza parâmetros
-            parametros, _ = ProfissionalParametros.objects.update_or_create(
+            # Atualiza ou cria parâmetros
+            ProfissionalParametros.objects.update_or_create(
                 profissional=profissional,
                 defaults={
                     'n_nc': form.cleaned_data['n_nc'],
@@ -171,7 +208,7 @@ def configurar_profissional(request):
                 }
             )
 
-            # Dias de atendimento
+            # Dias da semana
             ProfissionalDiasAtendimento.objects.filter(profissional=profissional).delete()
             for dia in form.cleaned_data['dias_atendimento']:
                 ProfissionalDiasAtendimento.objects.create(profissional=profissional, dia_semana=dia)
@@ -181,9 +218,10 @@ def configurar_profissional(request):
             for equipamento in form.cleaned_data['equipamentos']:
                 ProfissionalEquipamento.objects.create(profissional=profissional, equipamento=equipamento)
 
-            messages.success(request, 'Configurações salvas com sucesso.')
+            messages.success(request, "Configurações salvas com sucesso.")
             return redirect('dashboard')
     else:
+        # Acesso direto sem ID
         form = ParametrosProfissionalForm()
 
     return render(request, 'form_generic.html', {'form': form, 'titulo': 'Configurar Profissional'})
@@ -214,6 +252,35 @@ def excluir_funcionalidade(request, pk):
     return render(request, 'confirm_delete.html', {
         'objeto': funcionalidade,
         'titulo': 'Excluir Funcionalidade',
+        'descricao': 'Tem certeza que deseja excluir esta funcionalidade?'
+    })
+
+# =========================
+# CRUD PARA EQUIPAMENTO
+# =========================
+@login_required
+def editar_equipamento(request, pk):
+    equipamento = get_object_or_404(equipamento, pk=pk)
+    if request.method == 'POST':
+        form = EquipamentoForm(request.POST, instance=equipamento)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Equipamento atualizado com sucesso.")
+            return redirect('dashboard')
+    else:
+        form = EquipamentoForm(instance=equipamento)
+    return render(request, 'form_generic.html', {'form': form, 'titulo': 'Editar Equipamento'})
+
+@login_required
+def excluir_equipamento(request, pk):
+    equipamento = get_object_or_404(Equipamento, pk=pk)
+    if request.method == 'POST':
+        equipamento.delete()
+        messages.success(request, "Equipamento excluído com sucesso.")
+        return redirect('dashboard')
+    return render(request, 'confirm_delete.html', {
+        'objeto': equipamento,
+        'titulo': 'Excluir Equipamento',
         'descricao': 'Tem certeza que deseja excluir esta funcionalidade?'
     })
 

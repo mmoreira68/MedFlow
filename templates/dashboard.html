@@ -3,16 +3,17 @@
 {% block content %}
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0">Painel de Administração</h2>
+        <h2 class="mb-0">Painel de Gestão</h2>
         <div class="btn-group" role="group">
             <a href="{% url 'criar_andar' %}" class="btn btn-success">Adicionar Andar</a>
             <a href="{% url 'criar_funcionalidade' %}" class="btn btn-info">Adicionar Funcionalidade</a>
+            <a href="{% url 'criar_equipamento' %}" class="btn btn-warning">Adicionar Equipamento</a>
             <a href="{% url 'criar_profissional' %}" class="btn btn-secondary">Adicionar Profissional</a>
-            <a href="{% url 'configurar_profissional' %}" class="btn btn-warning">Configurar Profissional</a>
         </div>
     </div>
 
     <div class="accordion" id="dashboardAccordion">
+
         <!-- Andares e Salas -->
         <div class="accordion-item">
             <h2 class="accordion-header" id="headingAndares">
@@ -60,6 +61,64 @@
             </div>
         </div>
 
+        <!-- Funcionalidades -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingFuncionalidades">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapseFuncionalidades" aria-expanded="false"
+                    aria-controls="collapseFuncionalidades">
+                    Funcionalidades
+                </button>
+            </h2>
+            <div id="collapseFuncionalidades" class="accordion-collapse collapse"
+                aria-labelledby="headingFuncionalidades" data-bs-parent="#dashboardAccordion">
+                <div class="accordion-body">
+                    {% for funcao in funcionalidades %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                        <span>{{ funcao.nome }}</span>
+                        <div>
+                            <a href="{% url 'editar_funcionalidade' funcao.id %}"
+                                class="btn btn-sm btn-outline-primary">Editar</a>
+                            <a href="{% url 'excluir_funcionalidade' funcao.id %}"
+                                class="btn btn-sm btn-outline-danger">Excluir</a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="alert alert-info">Nenhuma funcionalidade cadastrada.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Equipamentos -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingEquipamentos">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapseEquipamentos" aria-expanded="false"
+                    aria-controls="collapseEquipamentos">
+                    Equipamentos
+                </button>
+            </h2>
+            <div id="collapseEquipamentos" class="accordion-collapse collapse"
+                aria-labelledby="headingEquipamentos" data-bs-parent="#dashboardAccordion">
+                <div class="accordion-body">
+                    {% for funcao in equipamentos %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                        <span>{{ funcao.nome }}</span>
+                        <div>
+                            <a href="{% url 'editar_equipamento' funcao.id %}"
+                                class="btn btn-sm btn-outline-primary">Editar</a>
+                            <a href="{% url 'excluir_equipamento' funcao.id %}"
+                                class="btn btn-sm btn-outline-danger">Excluir</a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="alert alert-info">Nenhum Equipamento cadastrado.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
         <!-- Profissionais -->
         <div class="accordion-item">
             <h2 class="accordion-header" id="headingProfissionais">
@@ -90,36 +149,7 @@
                     {% endfor %}
                 </div>
             </div>
-        </div>
-
-        <!-- Funcionalidades -->
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="headingFuncionalidades">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#collapseFuncionalidades" aria-expanded="false"
-                    aria-controls="collapseFuncionalidades">
-                    Funcionalidades
-                </button>
-            </h2>
-            <div id="collapseFuncionalidades" class="accordion-collapse collapse"
-                aria-labelledby="headingFuncionalidades" data-bs-parent="#dashboardAccordion">
-                <div class="accordion-body">
-                    {% for funcao in funcionalidades %}
-                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
-                        <span>{{ funcao.nome }}</span>
-                        <div>
-                            <a href="{% url 'editar_funcionalidade' funcao.id %}"
-                                class="btn btn-sm btn-outline-primary">Editar</a>
-                            <a href="{% url 'excluir_funcionalidade' funcao.id %}"
-                                class="btn btn-sm btn-outline-danger">Excluir</a>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div class="alert alert-info">Nenhuma funcionalidade cadastrada.</div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
+        </div>        
     </div>
 </div>
 {% endblock %}
