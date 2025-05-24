@@ -260,7 +260,7 @@ def excluir_funcionalidade(request, pk):
 # =========================
 @login_required
 def editar_equipamento(request, pk):
-    equipamento = get_object_or_404(equipamento, pk=pk)
+    equipamento = get_object_or_404(Equipamento, pk=pk)
     if request.method == 'POST':
         form = EquipamentoForm(request.POST, instance=equipamento)
         if form.is_valid():
@@ -281,7 +281,7 @@ def excluir_equipamento(request, pk):
     return render(request, 'confirm_delete.html', {
         'objeto': equipamento,
         'titulo': 'Excluir Equipamento',
-        'descricao': 'Tem certeza que deseja excluir esta funcionalidade?'
+        'descricao': 'Tem certeza que deseja excluir este equipamento?'
     })
 
 # =========================
