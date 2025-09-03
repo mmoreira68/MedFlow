@@ -55,7 +55,7 @@ class AgendamentoSalaForm(forms.ModelForm):
 class AndarForm(forms.ModelForm):
     class Meta:
         model = Andar
-        fields = ['numero']
+        fields = ['nome']
 
 # ------------------------------
 # FORMULÁRIO DE SALA
@@ -64,6 +64,12 @@ class SalaForm(forms.ModelForm):
     class Meta:
         model = Sala
         fields = ['numero', 'nome', 'andar', 'funcao']
+        labels = {
+            'numero': 'Número',
+            'funcao': 'Funcionalidade',
+            'nome': 'Nome',
+            'andar': 'Andar',
+        }
 
 # ------------------------------
 # FORMULÁRIO DE PROFISSIONAL

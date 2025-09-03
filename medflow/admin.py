@@ -7,7 +7,7 @@ from .models import Andar, Funcionalidade, Sala, \
                     AgendamentoSala
                     
 class AndarAdmin(admin.ModelAdmin):
-    list_display = ("numero",)
+    list_display = ("nome",)
 admin.site.register(Andar, AndarAdmin)
 
 class FuncionalidadeAdmin(admin.ModelAdmin):

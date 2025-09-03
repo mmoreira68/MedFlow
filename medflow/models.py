@@ -1,10 +1,10 @@
 from django.db import models
 
 class Andar(models.Model):
-    numero = models.IntegerField(unique=True)
+    nome = models.CharField(max_length=50, verbose_name="Nome do andar")
     
     def __str__(self):
-        return f"{self.numero}"
+        return f"{self.nome}"
 
 class Funcionalidade(models.Model):
     nome = models.CharField(max_length=100, unique=True)
@@ -13,10 +13,10 @@ class Funcionalidade(models.Model):
         return self.nome
 
 class Sala(models.Model):
-    numero = models.IntegerField(unique=True)
+    numero = models.IntegerField(unique=True, verbose_name="Número")
     nome = models.CharField(max_length=100, unique=True)
     andar = models.ForeignKey(Andar, on_delete=models.CASCADE)
-    funcao = models.ForeignKey(Funcionalidade, on_delete=models.CASCADE)
+    funcao = models.ForeignKey(Funcionalidade, on_delete=models.CASCADE, max_length=50, verbose_name="Funcionalidade")
 
     def __str__(self):
         return f"{self.nome} - {self.funcao}"

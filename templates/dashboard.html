@@ -28,7 +28,7 @@
                     {% for andar in andares %}
                     <div class="card mb-3">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <div><strong>{{ andar.numero }}º Andar</strong></div>
+                            <div><strong>Andar {{ andar.nome }}</strong></div>
                             <div>
                                 <a href="{% url 'editar_andar' andar.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
                                 <a href="{% url 'excluir_andar' andar.id %}" class="btn btn-sm btn-outline-danger">Excluir</a>
@@ -40,7 +40,7 @@
                             {% for sala in andar.sala_set.all %}
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <div>
-                                    <strong>{{ sala.nome }}</strong> ({{ sala.funcao.nome }}) - Sala {{ sala.numero }}
+                                    <strong>{{ sala.nome }}</strong> ({{ sala.funcao}}) - Sala {{ sala.numero }}
                                 </div>
                                 <div>
                                     <a href="{% url 'agendar_sala' sala.id %}"
