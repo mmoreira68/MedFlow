@@ -1,58 +1,63 @@
 from django.contrib import admin
+from .models import (
+    Andar, Funcionalidade, Sala,
+    Equipamento, SalaEquipamento,
+    Profissional, ProfissionalEquipamento, ProfissionalParametros,
+    ProfissionalDiasAtendimento,
+    AgendamentoSala
+)
 
-from .models import Andar, Funcionalidade, Sala, \
-                    Equipamento, SalaEquipamento, \
-                    Profissional, ProfissionalEquipamento, ProfissionalParametros, \
-                    ProfissionalDiasAtendimento, \
-                    AgendamentoSala
-                    
+# ANDAR
+@admin.register(Andar)
 class AndarAdmin(admin.ModelAdmin):
     list_display = ("nome",)
-admin.site.register(Andar, AndarAdmin)
+    search_fields = ("nome", "nome_norm")
 
+# FUNCIONALIDADE
+@admin.register(Funcionalidade)
 class FuncionalidadeAdmin(admin.ModelAdmin):
     list_display = ("nome",)
-admin.site.register(Funcionalidade, FuncionalidadeAdmin)
+    search_fields = ("nome", "nome_norm")
 
+# SALA (sem mudanças estruturais)
+@admin.register(Sala)
 class SalaAdmin(admin.ModelAdmin):
     list_display = ("andar","nome","funcao",)
-admin.site.register(Sala, SalaAdmin)
+    search_fields = ("nome",)
+    list_filter = ("andar", "funcao")
 
+# EQUIPAMENTO
+@admin.register(Equipamento)
 class EquipamentoAdmin(admin.ModelAdmin):
     list_display = ("nome",)
-admin.site.register(Equipamento, EquipamentoAdmin)
+    search_fields = ("nome", "nome_norm")
 
+# RELAÇÃO SALA-EQUIPAMENTO
+@admin.register(SalaEquipamento)
 class SalaEquipamentoAdmin(admin.ModelAdmin):
     list_display = ("sala","equipamento",)
-admin.site.register(SalaEquipamento, SalaEquipamentoAdmin)
 
-# ================================================================================
-
+# PROFISSIONAL
+@admin.register(Profissional)
 class ProfissionalAdmin(admin.ModelAdmin):
-    list_display = ("nome","especialidade",)
-admin.site.register(Profissional, ProfissionalAdmin)
+    list_display = ("nome","especialidade","crm")
+    search_fields = ("nome", "nome_norm", "especialidade", "crm")
+    list_filter = ("especialidade",)
 
+@admin.register(ProfissionalEquipamento)
 class ProfissionalEquipamentoAdmin(admin.ModelAdmin):
     list_display = ("profissional","equipamento",)
-admin.site.register(ProfissionalEquipamento, ProfissionalEquipamentoAdmin)
 
+@admin.register(ProfissionalParametros)
 class ProfissionalParametrosAdmin(admin.ModelAdmin):
     list_display = ("profissional","n_nc","t_nc","n_ret","t_ret",)
-admin.site.register(ProfissionalParametros, ProfissionalParametrosAdmin)
 
+@admin.register(ProfissionalDiasAtendimento)
 class ProfissionalDiasAtendimentoAdmin(admin.ModelAdmin):
     list_display = ("profissional","dia_semana",)
-admin.site.register(ProfissionalDiasAtendimento, ProfissionalDiasAtendimentoAdmin)
 
-# ================================================================================
-# ================================================================================
-
+# AGENDAMENTO
+@admin.register(AgendamentoSala)
 class AgendamentoSalaAdmin(admin.ModelAdmin):
     list_display = ("profissional","sala","horario_inicio","horario_final",)
-admin.site.register(AgendamentoSala, AgendamentoSalaAdmin)
-
-# class AgendamentoSala(models.Model):
-#     profissional = models.ForeignKey('Profissional', on_delete=models.CASCADE)
-#     sala_equipamento = models.ForeignKey('SalaEquipamento', on_delete=models.CASCADE)
-#     horario_inicio = models.TimeField()
-#     horario_final = models.TimeField(editable=False)
+    list_filter = ("data_agendamento", "sala", "profissional")

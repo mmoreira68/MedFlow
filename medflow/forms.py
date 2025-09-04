@@ -1,10 +1,12 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from datetime import datetime, timedelta
+
 from .models import (
     AgendamentoSala, Andar, Equipamento, Profissional,
     Sala, Funcionalidade
 )
+from .utils.text import normalize_sans_accents
 
 # ------------------------------
 # FORMULÁRIO DE AGENDAMENTO
@@ -26,7 +28,7 @@ class AgendamentoSalaForm(forms.ModelForm):
         horario_inicio = cleaned_data.get('horario_inicio')
 
         if not all([profissional, sala, data_agendamento, horario_inicio]):
-            return cleaned_data  # Permite o Django exibir erros padrões se faltarem campos
+            return cleaned_data  # permite o Django exibir erros padrões
 
         try:
             parametros = profissional.profissionalparametros
@@ -37,7 +39,7 @@ class AgendamentoSalaForm(forms.ModelForm):
         duracao = parametros.n_nc * parametros.t_nc + parametros.n_ret * parametros.t_ret
         horario_final = (datetime.combine(data_agendamento, horario_inicio) + timedelta(minutes=duracao)).time()
 
-        # Verifica conflitos de horário na mesma sala
+        # Verifica conflitos na sala
         conflitos = AgendamentoSala.objects.filter(
             sala=sala,
             data_agendamento=data_agendamento
@@ -59,8 +61,10 @@ class AndarForm(forms.ModelForm):
 
     def clean_nome(self):
         nome = self.cleaned_data['nome'].strip()
-        if Andar.objects.filter(nome__iexact=nome).exists():
-            raise ValidationError('Já existe um andar com esse nome.')
+        norm = normalize_sans_accents(nome)
+        # nome_norm é único
+        if Andar.objects.filter(nome_norm=norm).exists():
+            raise ValidationError('Já existe um andar com esse nome (ignorando acentos/caixa).')
         return nome
 
 # ------------------------------
@@ -83,7 +87,27 @@ class SalaForm(forms.ModelForm):
 class ProfissionalForm(forms.ModelForm):
     class Meta:
         model = Profissional
-        fields = ['nome', 'especialidade']
+        fields = ['nome', 'especialidade', 'crm']
+
+    def clean_nome(self):
+        # apenas consistência; não bloqueia homônimos
+        nome = self.cleaned_data['nome'].strip()
+        return nome
+
+    def clean_crm(self):
+        crm = self.cleaned_data['crm'].strip().upper()
+        # você pode adicionar regex/validador de formato aqui, se quiser (ex: UF + dígitos)
+        # Exemplo simples: somente alfanumérico, hífen e barra
+        # import re
+        # if not re.match(r'^[A-Z0-9\-\/\.]+$', crm):
+        #     raise ValidationError('CRM em formato inválido.')
+        # unicidade é garantida pelo unique=True do model; mas checamos cedo:
+        qs = Profissional.objects.all()
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.filter(crm__iexact=crm).exists():
+            raise ValidationError('Já existe um profissional com este CRM.')
+        return crm
 
 # ------------------------------
 # FORMULÁRIO DE FUNCIONALIDADE
@@ -95,8 +119,9 @@ class FuncionalidadeForm(forms.ModelForm):
     
     def clean_nome(self):
         nome = self.cleaned_data['nome'].strip()
-        if Funcionalidade.objects.filter(nome__iexact=nome).exists():
-            raise ValidationError('Já existe uma funcionalidade com esse nome.')
+        norm = normalize_sans_accents(nome)
+        if Funcionalidade.objects.filter(nome_norm=norm).exists():
+            raise ValidationError('Já existe uma funcionalidade com esse nome (ignorando acentos/caixa).')
         return nome
 
 # ------------------------------
@@ -106,6 +131,13 @@ class EquipamentoForm(forms.ModelForm):
     class Meta:
         model = Equipamento
         fields = ['nome']
+
+    def clean_nome(self):
+        nome = self.cleaned_data['nome'].strip()
+        norm = normalize_sans_accents(nome)
+        if Equipamento.objects.filter(nome_norm=norm).exists():
+            raise ValidationError('Já existe um equipamento com esse nome (ignorando acentos/caixa).')
+        return nome
 
 # ------------------------------
 # FORMULÁRIO DE PARÂMETROS DO PROFISSIONAL

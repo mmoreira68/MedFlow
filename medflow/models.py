@@ -1,18 +1,28 @@
+from datetime import datetime, timedelta
 from django.db import models
 
-class Andar(models.Model):
-    nome = models.CharField(max_length=50, verbose_name="Nome do andar")
-    
+from .models_mixins import UniqueNormalizedNameMixin, NormalizedNameMixin
+
+class Andar(UniqueNormalizedNameMixin):
+    class Meta(UniqueNormalizedNameMixin.Meta):
+        verbose_name = "Andar"
+        verbose_name_plural = "Andares"
+
     def __str__(self):
         return f"{self.nome}"
 
-class Funcionalidade(models.Model):
-    nome = models.CharField(max_length=100, unique=True)
-   
+
+class Funcionalidade(UniqueNormalizedNameMixin):
+    class Meta(UniqueNormalizedNameMixin.Meta):
+        verbose_name = "Funcionalidade"
+        verbose_name_plural = "Funcionalidades"
+
     def __str__(self):
         return self.nome
 
+
 class Sala(models.Model):
+    # OBS: mantido exatamente como você pediu (sem mudanças)
     numero = models.IntegerField(unique=True, verbose_name="Número")
     nome = models.CharField(max_length=100, unique=True)
     andar = models.ForeignKey(Andar, on_delete=models.CASCADE)
@@ -21,11 +31,15 @@ class Sala(models.Model):
     def __str__(self):
         return f"{self.nome} - {self.funcao}"
 
-class Equipamento(models.Model):
-    nome = models.CharField(max_length=100, unique=True)
-    
+
+class Equipamento(UniqueNormalizedNameMixin):
+    class Meta(UniqueNormalizedNameMixin.Meta):
+        verbose_name = "Equipamento"
+        verbose_name_plural = "Equipamentos"
+
     def __str__(self):
         return self.nome
+
 
 class SalaEquipamento(models.Model):
     sala = models.ForeignKey(Sala, on_delete=models.CASCADE)
@@ -37,17 +51,25 @@ class SalaEquipamento(models.Model):
     def __str__(self):
         return f"{self.sala} - {self.equipamento}"
 
+
 # ================================================================================
 
-class Profissional(models.Model):
-    nome = models.CharField(max_length=100)
+class Profissional(NormalizedNameMixin):
+    """
+    Agora com CRM único para diferenciar homônimos.
+    Mantemos nome_norm (sem unique) apenas para normalização/busca.
+    """
     especialidade = models.CharField(max_length=100)
+    crm = models.CharField(max_length=30, unique=True)  # novo campo
 
-    class Meta:
-        unique_together = ("nome", "especialidade")
+    class Meta(NormalizedNameMixin.Meta):
+        # removemos unique_together (nome, especialidade) para permitir homônimos
+        verbose_name = "Profissional"
+        verbose_name_plural = "Profissionais"
 
     def __str__(self):
-        return f"{self.nome} - {self.especialidade}"
+        return f"{self.nome} - {self.especialidade} (CRM {self.crm})"
+
 
 class ProfissionalEquipamento(models.Model):
     profissional = models.ForeignKey(Profissional, on_delete=models.CASCADE)
@@ -59,6 +81,7 @@ class ProfissionalEquipamento(models.Model):
     def __str__(self):
         return f"{self.profissional} - {self.equipamento}"
 
+
 class ProfissionalParametros(models.Model):
     profissional = models.OneToOneField(Profissional, on_delete=models.CASCADE)
     n_nc = models.IntegerField()
@@ -69,16 +92,14 @@ class ProfissionalParametros(models.Model):
     def __str__(self):
         return f"{self.profissional} - {self.n_nc} - {self.t_nc} - {self.n_ret} - {self.t_ret}"
 
+
 class ProfissionalDiasAtendimento(models.Model):
 
     class DiasDaSemana(models.TextChoices):
         SEG, TER, QUA, QUI, SEX, SAB, DOM = ('SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM')
 
     profissional = models.ForeignKey(Profissional, on_delete=models.CASCADE)
-    dia_semana = models.CharField(
-        max_length=3,
-        choices=DiasDaSemana.choices
-    )
+    dia_semana = models.CharField(max_length=3, choices=DiasDaSemana.choices)
 
     class Meta:
         unique_together = ("profissional", "dia_semana")
@@ -86,10 +107,8 @@ class ProfissionalDiasAtendimento(models.Model):
     def __str__(self):
         return f"{self.profissional} - {self.dia_semana}"
 
-# ================================================================================
-# ================================================================================
 
-from datetime import datetime, timedelta
+# ================================================================================
 
 class AgendamentoSala(models.Model):
     profissional = models.ForeignKey('Profissional', on_delete=models.CASCADE)

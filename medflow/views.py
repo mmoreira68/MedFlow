@@ -4,12 +4,19 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse
 from django.template.loader import render_to_string
 from datetime import datetime, date, timedelta
 from datetime import date
-from .models import Andar, Funcionalidade, Equipamento, ProfissionalDiasAtendimento, ProfissionalEquipamento, ProfissionalParametros, Sala, AgendamentoSala, Profissional
-from .forms import AgendamentoSalaForm, AndarForm, FuncionalidadeForm, ProfissionalForm, SalaForm, EquipamentoForm, ParametrosProfissionalForm
+
+from .models import (
+    Andar, Funcionalidade, Equipamento, ProfissionalDiasAtendimento,
+    ProfissionalEquipamento, ProfissionalParametros, Sala, AgendamentoSala, Profissional
+)
+from .forms import (
+    AgendamentoSalaForm, AndarForm, FuncionalidadeForm, ProfissionalForm,
+    SalaForm, EquipamentoForm, ParametrosProfissionalForm
+)
 
 # Página inicial
 def home(request):
@@ -156,7 +163,7 @@ def andar_quick_add(request):
 
     # ERRO DE FORM: re-renderiza o formulário dentro do modal (status 200!)
     html = render_to_string('partials/andar_quick_form.html', {'form': form}, request)
-    return HttpResponse(html)  # 200, para o HTMX trocar o corpo do modal
+    return HttpResponse(html)  # 200
 
 # ---- Quick Add Funcionalidade ----
 def func_quick_add(request):
@@ -205,7 +212,6 @@ def criar_profissional(request):
 
 @login_required
 def criar_funcionalidade(request):
-
     if request.method == 'POST':
         form = FuncionalidadeForm(request.POST)
         if form.is_valid():
@@ -217,8 +223,6 @@ def criar_funcionalidade(request):
 
 @login_required
 def configurar_profissional(request):
-    from .forms import ParametrosProfissionalForm
-
     profissional_id = request.GET.get('prof')
 
     # Se for uma edição
@@ -437,4 +441,3 @@ def novo_agendamento(request):
         'form': form,
         'titulo': 'Novo Agendamento'
     })
-

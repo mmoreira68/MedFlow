@@ -3,3 +3,5 @@ __pycache__/
 .vscode/
 db.sqlite3
 populate_data.py
+venv/
+medflow/migrations
