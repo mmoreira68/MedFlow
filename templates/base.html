@@ -35,6 +35,31 @@
       text-align: center;
     }
   </style>
+  <script src="https://unpkg.com/htmx.org@2.0.3"></script>
+
+  <script>
+    // Fecha o modal quando a resposta vier com o header: HX-Trigger: closeModal
+    document.body.addEventListener('closeModal', function () {
+      const el = document.getElementById('quickAddModal');
+      if (!el) return;
+      const inst = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
+      inst.hide();
+    });
+  </script>
+
+  <script>
+    window.addEventListener('closeModal', function () {
+      const el = document.getElementById('quickAddModal');
+      if (!el) return;
+      const inst = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
+      inst.hide();
+      const body = document.getElementById('quickAddBody');
+      if (body) body.innerHTML = '';
+    });
+  </script>
+
+
+  <div id="global-messages" class="container mt-3"></div>
 </head>
 
 <body>
@@ -55,7 +80,7 @@
             <a class="nav-link" href="{% url 'visualizar_agendamentos' %}">Agendamentos</a>
           </li>
           <li class="nav-item">
-             <a class="nav-link text-strong-yellow" href="{% url 'logout' %}">Logout</a>
+            <a class="nav-link text-strong-yellow" href="{% url 'logout' %}">Logout</a>
           </li>
           {% else %}
           <li class="nav-item">
@@ -76,7 +101,7 @@
     <p>&copy; 2025 MedFlow - Gestão de Salas Hospitalares</p>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

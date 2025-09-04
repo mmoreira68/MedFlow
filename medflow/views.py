@@ -1,7 +1,11 @@
+import json
+from sqlite3 import IntegrityError
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import HttpResponse, HttpResponseBadRequest
+from django.template.loader import render_to_string
 from datetime import datetime, date, timedelta
 from datetime import date
 from .models import Andar, Funcionalidade, Equipamento, ProfissionalDiasAtendimento, ProfissionalEquipamento, ProfissionalParametros, Sala, AgendamentoSala, Profissional
@@ -128,6 +132,54 @@ def criar_sala(request, andar_id):
     else:
         form = SalaForm(initial={'andar': andar_id})
     return render(request, 'form_generic.html', {'form': form, 'titulo': 'Criar Sala'})
+
+# ---- Quick Add Andar ----
+def andar_quick_add(request):
+    if request.method == 'GET':
+        form = AndarForm()
+        html = render_to_string('partials/andar_quick_form.html', {'form': form}, request)
+        return HttpResponse(html)  # 200
+
+    form = AndarForm(request.POST)
+    if form.is_valid():
+        try:
+            obj = form.save()
+        except IntegrityError:
+            form.add_error('nome', 'Já existe um andar com esse nome.')
+        else:
+            # Sucesso: adiciona <option> ao select e fecha o modal
+            resp = HttpResponse(f'<option value="{obj.id}" selected>{obj}</option>')
+            resp['HX-Retarget'] = '#id_andar'     # insere no <select id="id_andar">
+            resp['HX-Reswap'] = 'beforeend'       # ...no final
+            resp['HX-Trigger-After-Swap'] = 'closeModal'
+            return resp
+
+    # ERRO DE FORM: re-renderiza o formulário dentro do modal (status 200!)
+    html = render_to_string('partials/andar_quick_form.html', {'form': form}, request)
+    return HttpResponse(html)  # 200, para o HTMX trocar o corpo do modal
+
+# ---- Quick Add Funcionalidade ----
+def func_quick_add(request):
+    if request.method == 'GET':
+        form = FuncionalidadeForm()
+        html = render_to_string('partials/func_quick_form.html', {'form': form}, request)
+        return HttpResponse(html)
+
+    form = FuncionalidadeForm(request.POST)
+    if form.is_valid():
+        try:
+            obj = form.save()
+        except IntegrityError:
+            form.add_error('nome', 'Já existe uma funcionalidade com esse nome.')
+        else:
+            resp = HttpResponse(f'<option value="{obj.id}" selected>{obj}</option>')
+            resp['HX-Retarget'] = '#id_funcao'
+            resp['HX-Reswap'] = 'beforeend'
+            resp['HX-Trigger-After-Swap'] = 'closeModal'
+            return resp
+
+    html = render_to_string('partials/func_quick_form.html', {'form': form}, request)
+    return HttpResponse(html)
 
 @login_required
 def criar_equipamento(request):

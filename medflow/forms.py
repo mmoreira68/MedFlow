@@ -57,6 +57,12 @@ class AndarForm(forms.ModelForm):
         model = Andar
         fields = ['nome']
 
+    def clean_nome(self):
+        nome = self.cleaned_data['nome'].strip()
+        if Andar.objects.filter(nome__iexact=nome).exists():
+            raise ValidationError('Já existe um andar com esse nome.')
+        return nome
+
 # ------------------------------
 # FORMULÁRIO DE SALA
 # ------------------------------
@@ -86,6 +92,12 @@ class FuncionalidadeForm(forms.ModelForm):
     class Meta:
         model = Funcionalidade
         fields = ['nome']
+    
+    def clean_nome(self):
+        nome = self.cleaned_data['nome'].strip()
+        if Funcionalidade.objects.filter(nome__iexact=nome).exists():
+            raise ValidationError('Já existe uma funcionalidade com esse nome.')
+        return nome
 
 # ------------------------------
 # FORMULÁRIO DE EQUIPAMENTO

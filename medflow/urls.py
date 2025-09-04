@@ -32,4 +32,7 @@ urlpatterns = [
     path('profissional/editar/<int:pk>/', views.editar_profissional, name='editar_profissional'),
     path('profissional/excluir/<int:pk>/', views.excluir_profissional, name='excluir_profissional'),
     path('agendamento/novo/', views.novo_agendamento, name='novo_agendamento'),
+    # Quick-add andar-função
+    path('andar/quick-add/', views.andar_quick_add, name='andar_quick_add'),
+    path('funcionalidade/quick-add/', views.func_quick_add, name='func_quick_add'),
 ]

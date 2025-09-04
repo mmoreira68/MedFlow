@@ -1,0 +1,15 @@
+<!-- templates/partials/andar_quick_form.html -->
+<form hx-post="{% url 'andar_quick_add' %}" hx-target="#quickAddBody" hx-swap="innerHTML">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label class="form-label" for="{{ form.nome.id_for_label }}">Nome do Andar</label>
+        {{ form.nome }}
+        {% if form.nome.errors %}
+        <div class="text-danger">{% for e in form.nome.errors %}{{ e }}{% endfor %}</div>
+        {% endif %}
+    </div>
+    <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-success">Salvar Andar</button>
+    </div>
+</form>

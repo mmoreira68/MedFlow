@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+
 {% block content %}
 <div class="container mt-5">
   <div class="card shadow-sm">
@@ -15,15 +16,84 @@
           </div>
         {% endif %}
 
-        {% for field in form %}
+        {# Número #}
+        {% if form.numero %}
           <div class="mb-3">
-            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-            {{ field }}
-            {% if field.help_text %}<small class="form-text text-muted">{{ field.help_text }}</small>{% endif %}
-            {% if field.errors %}
-              <div class="text-danger">{% for error in field.errors %}{{ error }}{% endfor %}</div>
+            <label for="{{ form.numero.id_for_label }}" class="form-label">Número</label>
+            {{ form.numero }}
+            {% if form.numero.errors %}
+              <div class="text-danger">{% for e in form.numero.errors %}{{ e }}{% endfor %}</div>
             {% endif %}
           </div>
+        {% endif %}
+
+        {# Nome #}
+        {% if form.nome %}
+          <div class="mb-3">
+            <label for="{{ form.nome.id_for_label }}" class="form-label">Nome</label>
+            {{ form.nome }}
+            {% if form.nome.errors %}
+              <div class="text-danger">{% for e in form.nome.errors %}{{ e }}{% endfor %}</div>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        {# Andar + botão + #}
+        {% if form.andar %}
+          <div class="mb-3 d-flex align-items-end gap-2">
+            <div class="flex-grow-1">
+              <label for="{{ form.andar.id_for_label }}" class="form-label">Andar</label>
+              {{ form.andar }}
+              {% if form.andar.errors %}
+                <div class="text-danger">{% for e in form.andar.errors %}{{ e }}{% endfor %}</div>
+              {% endif %}
+            </div>
+            <button type="button"
+                    class="btn btn-outline-primary"
+                    hx-get="{% url 'andar_quick_add' %}"
+                    hx-target="#quickAddBody"
+                    hx-swap="innerHTML"
+                    data-bs-toggle="modal"
+                    data-bs-target="#quickAddModal"
+                    onclick="document.getElementById('quickAddTitle').innerText='Novo Andar'">
+              + Andar
+            </button>
+          </div>
+        {% endif %}
+
+        {# Funcionalidade + botão +  (campo real = funcao) #}
+        {% if form.funcao %}
+          <div class="mb-3 d-flex align-items-end gap-2">
+            <div class="flex-grow-1">
+              <label for="{{ form.funcao.id_for_label }}" class="form-label">Funcionalidade</label>
+              {{ form.funcao }}
+              {% if form.funcao.errors %}
+                <div class="text-danger">{% for e in form.funcao.errors %}{{ e }}{% endfor %}</div>
+              {% endif %}
+            </div>
+            <button type="button"
+                    class="btn btn-outline-primary"
+                    hx-get="{% url 'func_quick_add' %}"
+                    hx-target="#quickAddBody"
+                    hx-swap="innerHTML"
+                    data-bs-toggle="modal"
+                    data-bs-target="#quickAddModal"
+                    onclick="document.getElementById('quickAddTitle').innerText='Nova Funcionalidade'">
+              + Funcionalidade
+            </button>
+          </div>
+        {% endif %}
+
+        {# Caso existam outros campos no form, renderize-os #}
+        {% for field in form %}
+          {% if field.name != 'numero' and field.name != 'nome' and field.name != 'andar' and field.name != 'funcao' %}
+            <div class="mb-3">
+              <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}<small class="form-text text-muted">{{ field.help_text }}</small>{% endif %}
+              {% if field.errors %}<div class="text-danger">{% for e in field.errors %}{{ e }}{% endfor %}</div>{% endif %}
+            </div>
+          {% endif %}
         {% endfor %}
 
         <div class="d-flex justify-content-between">
@@ -31,6 +101,21 @@
           <button type="submit" class="btn btn-success">Salvar</button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+{# Modal reutilizável #}
+<div class="modal fade" id="quickAddModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="quickAddTitle">Adicionar</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="quickAddBody">
+        <!-- HTMX insere o form parcial aqui -->
+      </div>
     </div>
   </div>
 </div>
