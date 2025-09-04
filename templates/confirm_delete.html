@@ -1,12 +1,28 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mt-4">
-    <h2>{{ titulo }}</h2>
-    <p>{{ descricao }}</p>
-    <form method="post">
+<div class="container mt-5">
+  <div class="card shadow-sm">
+    <div class="card-header bg-danger text-white">
+      <h4 class="mb-0">{{ titulo }}</h4>
+    </div>
+    <div class="card-body">
+      <p>{{ descricao }}</p>
+
+      <form method="post">
         {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
-        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancelar</a>
-    </form>
+        {% if next_url %}
+          <input type="hidden" name="next" value="{{ next_url }}">
+        {% endif %}
+
+        <div class="d-flex justify-content-between">
+          <a href="{{ next_url|default:request.META.HTTP_REFERER|default_if_none:''|default:'#' }}"
+             onclick="if(this.getAttribute('href')==='#'){ history.back(); return false; }"
+             class="btn btn-secondary">Cancelar</a>
+
+          <button type="submit" class="btn btn-danger">Confirmar</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 {% endblock %}

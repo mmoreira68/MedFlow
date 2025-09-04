@@ -10,6 +10,11 @@
       <form method="post">
         {% csrf_token %}
 
+        {# guarda origem para retornar após salvar/editar quando aplicável #}
+        {% if next_url %}
+          <input type="hidden" name="next" value="{{ next_url }}">
+        {% endif %}
+
         {% if form.non_field_errors %}
           <div class="alert alert-danger">
             {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
@@ -84,9 +89,20 @@
           </div>
         {% endif %}
 
-        {# Caso existam outros campos no form, renderize-os #}
+        {# Campo CRM (profissional) — apenas se existir no form #}
+        {% if form.crm %}
+          <div class="mb-3">
+            <label for="{{ form.crm.id_for_label }}" class="form-label">CRM</label>
+            {{ form.crm }}
+            {% if form.crm.errors %}
+              <div class="text-danger">{% for e in form.crm.errors %}{{ e }}{% endfor %}</div>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        {# Demais campos genéricos #}
         {% for field in form %}
-          {% if field.name != 'numero' and field.name != 'nome' and field.name != 'andar' and field.name != 'funcao' %}
+          {% if field.name not in 'numero nome andar funcao crm' %}
             <div class="mb-3">
               <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
               {{ field }}
@@ -97,12 +113,70 @@
         {% endfor %}
 
         <div class="d-flex justify-content-between">
-          <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancelar</a>
+          {# Regra: se cancel_url vier (criação), SEMPRE vai para dashboard; senão, usa next_url; senão, dashboard #}
+          <a href="{% if cancel_url %}{{ cancel_url }}{% elif next_url %}{{ next_url }}{% else %}{% url 'dashboard' %}{% endif %}"
+             class="btn btn-secondary">Cancelar</a>
           <button type="submit" class="btn btn-success">Salvar</button>
         </div>
       </form>
     </div>
   </div>
+
+  {% if lista_headers and lista_rows is not None %}
+    <div class="card shadow-sm mt-4">
+      <div class="card-header bg-light">
+        <h5 class="mb-0">
+          {{ lista_titulo }}
+          {% if lista_subtitulo %}<small class="text-muted">— {{ lista_subtitulo }}</small>{% endif %}
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        {% if lista_rows %}
+          <div class="table-responsive">
+            <table class="table table-striped mb-0">
+              <thead>
+                <tr>
+                  {% for h in lista_headers %}
+                    <th scope="col">{{ h }}</th>
+                  {% endfor %}
+                  {% if lista_mostra_acoes %}
+                    <th scope="col" class="text-end">Ações</th>
+                  {% endif %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in lista_rows %}
+                  <tr>
+                    {% for col in row.cols %}
+                      <td>{{ col }}</td>
+                    {% endfor %}
+                    {% if lista_mostra_acoes %}
+                      <td class="text-end table-actions">
+                        <div class="btn-group" role="group" aria-label="Ações">
+                          <a class="btn btn-sm btn-outline-primary" href="{{ row.edit }}">
+                            <i class="bi bi-pencil-square"></i>
+                          </a>
+                          <a class="btn btn-sm btn-outline-danger" href="{{ row.delete }}">
+                            <i class="bi bi-trash"></i>
+                          </a>
+                        </div>
+                      </td>
+                    {% endif %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="p-3">
+            <div class="alert alert-info mb-0">
+              {{ lista_vazia_msg|default:"Nenhum registro encontrado." }}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
 </div>
 
 {# Modal reutilizável #}
