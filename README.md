@@ -1,8 +1,5 @@
-# Vamos gerar o arquivo README.md com o conteúdo em markdown
+# Projeto Integrador desenvolvido no âmbito da graduação em **Ciência de Dados e Tecnologia** da **UNIVESP**.  
 
-content = """# 🏥 MedFlow – Gestão de Salas Hospitalares  
-
-Projeto Integrador desenvolvido no âmbito da graduação em **Ciência de Dados e Tecnologia** da **UNIVESP**.  
 O **MedFlow** é um sistema web de gestão hospitalar que facilita o controle de **andares, salas, equipamentos, profissionais** e **agendamentos de uso de salas**.  
 
 ---
