@@ -1,10 +1,27 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from datetime import datetime, timedelta
+import unicodedata
+
 from .models import (
     AgendamentoSala, Andar, Equipamento, Profissional,
     Sala, Funcionalidade
 )
+
+
+# ---------- util: normalização compatível com nome_norm ----------
+def _normalize(s: str) -> str:
+    """
+    Remove acentos, baixa caixa, colapsa espaços.
+    """
+    if s is None:
+        return ""
+    s = s.strip()
+    s = unicodedata.normalize('NFD', s)
+    s = ''.join(ch for ch in s if unicodedata.category(ch) != 'Mn')
+    s = ' '.join(s.split())  # colapsa espaços internos
+    return s.lower()
+
 
 # ------------------------------
 # FORMULÁRIO DE AGENDAMENTO
@@ -47,6 +64,7 @@ class AgendamentoSalaForm(forms.ModelForm):
 
         return cleaned_data
 
+
 # ------------------------------
 # FORMULÁRIO DE ANDAR
 # ------------------------------
@@ -56,10 +74,15 @@ class AndarForm(forms.ModelForm):
         fields = ['nome']
 
     def clean_nome(self):
-        nome = self.cleaned_data['nome'].strip()
-        if Andar.objects.filter(nome__iexact=nome).exists():
+        nome = (self.cleaned_data.get('nome') or '').strip()
+        norm = _normalize(nome)
+        qs = Andar.objects.filter(nome_norm=norm)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
             raise ValidationError('Já existe um andar com esse nome.')
         return nome
+
 
 # ------------------------------
 # FORMULÁRIO DE SALA
@@ -75,16 +98,31 @@ class SalaForm(forms.ModelForm):
             'andar': 'Andar',
         }
 
+
 # ------------------------------
 # FORMULÁRIO DE PROFISSIONAL
 # ------------------------------
 class ProfissionalForm(forms.ModelForm):
     class Meta:
         model = Profissional
-        fields = ['nome', 'especialidade', 'crm']  # inclui CRM no form
+        fields = ['nome', 'especialidade', 'crm']
         labels = {
-            'crm': 'CRM',  # força rótulo maiúsculo
+            'nome': 'Nome',
+            'especialidade': 'Especialidade',
+            'crm': 'CRM',
         }
+
+    def clean_crm(self):
+        crm = (self.cleaned_data.get('crm') or '').strip()
+        if not crm:
+            raise ValidationError('Informe o CRM.')
+        qs = Profissional.objects.filter(crm__iexact=crm)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise ValidationError('Já existe um profissional com este CRM.')
+        return crm
+
 
 # ------------------------------
 # FORMULÁRIO DE FUNCIONALIDADE
@@ -93,12 +131,17 @@ class FuncionalidadeForm(forms.ModelForm):
     class Meta:
         model = Funcionalidade
         fields = ['nome']
-    
+
     def clean_nome(self):
-        nome = self.cleaned_data['nome'].strip()
-        if Funcionalidade.objects.filter(nome__iexact=nome).exists():
+        nome = (self.cleaned_data.get('nome') or '').strip()
+        norm = _normalize(nome)
+        qs = Funcionalidade.objects.filter(nome_norm=norm)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
             raise ValidationError('Já existe uma funcionalidade com esse nome.')
         return nome
+
 
 # ------------------------------
 # FORMULÁRIO DE EQUIPAMENTO
@@ -107,6 +150,17 @@ class EquipamentoForm(forms.ModelForm):
     class Meta:
         model = Equipamento
         fields = ['nome']
+
+    def clean_nome(self):
+        nome = (self.cleaned_data.get('nome') or '').strip()
+        norm = _normalize(nome)
+        qs = Equipamento.objects.filter(nome_norm=norm)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise ValidationError('Já existe um equipamento com esse nome.')
+        return nome
+
 
 # ------------------------------
 # FORMULÁRIO DE PARÂMETROS DO PROFISSIONAL

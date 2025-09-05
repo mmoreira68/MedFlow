@@ -1,16 +1,17 @@
 import json
 from sqlite3 import IntegrityError
-from django.shortcuts import render, redirect, get_object_or_404
+from datetime import datetime, date, timedelta
+
+from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
+from django.db.models.deletion import ProtectedError
 from django.http import HttpResponse
+from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.conf import settings
-from datetime import datetime, date, timedelta
-from datetime import date
 
 from .models import (
     Andar, Funcionalidade, Equipamento, ProfissionalDiasAtendimento,
@@ -21,7 +22,7 @@ from .forms import (
     SalaForm, EquipamentoForm, ParametrosProfissionalForm
 )
 
-# ===== Helpers =====
+# ===== Helpers ===============================================================
 def _current_path(request):
     return request.get_full_path()
 
@@ -41,15 +42,13 @@ def _ctx_lista(titulo, headers, rows, vazio_msg, subtitulo=None, mostra_acoes=Tr
         'lista_mostra_acoes': mostra_acoes,
     }
 
-def _row(cols, edit_url, delete_url):
-    return {"cols": cols, "edit": edit_url, "delete": delete_url}
+def _row(cols, edit_url, delete_url, extra_actions=None):
+    return {"cols": cols, "edit": edit_url, "delete": delete_url, "extra": extra_actions or []}
 
-
-# Página inicial
+# ===== Público / Auth ========================================================
 def home(request):
     return render(request, 'home.html')
 
-# Página pública com agendamentos do dia (com navegação entre datas)
 def visualizar_agendamentos(request):
     data_str = request.GET.get('data')
     try:
@@ -66,7 +65,6 @@ def visualizar_agendamentos(request):
         'data_posterior': data + timedelta(days=1),
     })
 
-# Tela de login
 def login_view(request):
     if request.method == "POST":
         username = request.POST['email']
@@ -75,17 +73,15 @@ def login_view(request):
         if user is not None:
             login(request, user)
             return redirect('dashboard')
-        else:
-            messages.error(request, "Usuário ou senha inválidos.")
+        messages.error(request, "Usuário ou senha inválidos.")
     return render(request, 'login.html')
 
-# Logout
 @login_required
 def logout_view(request):
     logout(request)
     return redirect('home')
 
-# Painel principal
+# ===== Dashboard =============================================================
 @login_required
 def dashboard(request):
     andares = Andar.objects.prefetch_related('sala_set').all()
@@ -100,7 +96,7 @@ def dashboard(request):
         'equipamentos': equipamentos,
     })
 
-# Agendar sala (acessado a partir do dashboard)
+# ===== Agendamentos ==========================================================
 @login_required
 def agendar_sala(request, sala_id):
     sala = get_object_or_404(Sala, id=sala_id)
@@ -111,7 +107,6 @@ def agendar_sala(request, sala_id):
             return redirect('dashboard')
     else:
         form = AgendamentoSalaForm(initial={'sala': sala})
-
     return render(request, 'agendar_sala.html', {'form': form, 'sala': sala})
 
 @login_required
@@ -126,10 +121,8 @@ def lista_agendamentos(request):
 
     profissional_id = request.GET.get('profissional')
     sala_id = request.GET.get('sala')
-
     if profissional_id:
         agendamentos = agendamentos.filter(profissional_id=profissional_id)
-
     if sala_id:
         agendamentos = agendamentos.filter(sala_id=sala_id)
 
@@ -145,15 +138,14 @@ def lista_agendamentos(request):
     }
     return render(request, 'agendamentos.html', context)
 
-# =========================
-# CRIAR (botão Cancelar -> dashboard) + listas abaixo
-# =========================
+# ===== CRIAR + listas abaixo =================================================
 @login_required
 def criar_andar(request):
     if request.method == 'POST':
         form = AndarForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, "Andar criado com sucesso.")
             return redirect('dashboard')
     else:
         form = AndarForm()
@@ -168,18 +160,12 @@ def criar_andar(request):
         )
         for a in andares
     ]
-    ctx_lista = _ctx_lista(
-        titulo='Andares existentes',
-        headers=['Nome'],
-        rows=rows,
-        vazio_msg='Não existe andar cadastrado.'
-    )
     ctx = {
         'form': form,
         'titulo': 'Criar Andar',
         'next_url': current,
-        'cancel_url': reverse('dashboard'),  # <- sempre dashboard na criação
-        **ctx_lista
+        'cancel_url': reverse('dashboard'),
+        **_ctx_lista('Andares existentes', ['Nome'], rows, 'Não existe andar cadastrado.')
     }
     return render(request, 'form_generic.html', ctx)
 
@@ -191,15 +177,14 @@ def criar_sala(request, andar_id):
         form = SalaForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, "Sala criada com sucesso.")
             return redirect('dashboard')
     else:
         form = SalaForm(initial={'andar': andar_id})
 
     current = _current_path(request)
-    salas = (Sala.objects
-                  .filter(andar_id=andar_id)
-                  .select_related('funcao')
-                  .order_by('numero', 'nome'))
+    salas = (Sala.objects.filter(andar_id=andar_id)
+             .select_related('funcao').order_by('numero', 'nome'))
 
     rows = [
         _row(
@@ -209,19 +194,13 @@ def criar_sala(request, andar_id):
         )
         for s in salas
     ]
-    ctx_lista = _ctx_lista(
-        titulo='Salas no andar',
-        headers=['Número', 'Nome', 'Funcionalidade'],
-        rows=rows,
-        vazio_msg='Não existe sala cadastrada neste andar.',
-        subtitulo=str(andar.nome)
-    )
     ctx = {
         'form': form,
         'titulo': 'Criar Sala',
         'next_url': current,
-        'cancel_url': reverse('dashboard'),  # <- sempre dashboard na criação
-        **ctx_lista
+        'cancel_url': reverse('dashboard'),
+        **_ctx_lista('Salas no andar', ['Número', 'Nome', 'Funcionalidade'], rows,
+                     'Não existe sala cadastrada neste andar.', subtitulo=str(andar.nome))
     }
     return render(request, 'form_generic.html', ctx)
 
@@ -231,6 +210,7 @@ def criar_funcionalidade(request):
         form = FuncionalidadeForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, "Funcionalidade criada com sucesso.")
             return redirect('dashboard')
     else:
         form = FuncionalidadeForm()
@@ -245,18 +225,13 @@ def criar_funcionalidade(request):
         )
         for f in funcionalidades
     ]
-    ctx_lista = _ctx_lista(
-        titulo='Funcionalidades existentes',
-        headers=['Nome'],
-        rows=rows,
-        vazio_msg='Não existe funcionalidade cadastrada.'
-    )
     ctx = {
         'form': form,
         'titulo': 'Criar Funcionalidade',
         'next_url': current,
-        'cancel_url': reverse('dashboard'),  # <- sempre dashboard na criação
-        **ctx_lista
+        'cancel_url': reverse('dashboard'),
+        **_ctx_lista('Funcionalidades existentes', ['Nome'], rows,
+                     'Não existe funcionalidade cadastrada.')
     }
     return render(request, 'form_generic.html', ctx)
 
@@ -266,6 +241,7 @@ def criar_equipamento(request):
         form = EquipamentoForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, "Equipamento criado com sucesso.")
             return redirect('dashboard')
     else:
         form = EquipamentoForm()
@@ -280,18 +256,13 @@ def criar_equipamento(request):
         )
         for e in equipamentos
     ]
-    ctx_lista = _ctx_lista(
-        titulo='Equipamentos existentes',
-        headers=['Nome'],
-        rows=rows,
-        vazio_msg='Não existe equipamento cadastrado.'
-    )
     ctx = {
         'form': form,
         'titulo': 'Criar Equipamento',
         'next_url': current,
-        'cancel_url': reverse('dashboard'),  # <- sempre dashboard na criação
-        **ctx_lista
+        'cancel_url': reverse('dashboard'),
+        **_ctx_lista('Equipamentos existentes', ['Nome'], rows,
+                     'Não existe equipamento cadastrado.')
     }
     return render(request, 'form_generic.html', ctx)
 
@@ -301,43 +272,37 @@ def criar_profissional(request):
         form = ProfissionalForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, "Profissional criado com sucesso.")
             return redirect('dashboard')
     else:
         form = ProfissionalForm()
 
     current = _current_path(request)
     profissionais = Profissional.objects.order_by('nome')
-    tem_crm = hasattr(Profissional, 'crm')
-    headers = ['Nome', 'Especialidade'] + (['CRM'] if tem_crm else [])
+    headers = ['Nome', 'Especialidade', 'CRM']
     rows = []
     for p in profissionais:
-        cols = [p.nome, p.especialidade]
-        if tem_crm:
-            cols.append(getattr(p, 'crm', ''))
-        rows.append(
-            _row(
-                cols=cols,
-                edit_url=f"{reverse('editar_profissional', args=[p.pk])}?next={current}",
-                delete_url=f"{reverse('excluir_profissional', args=[p.pk])}?next={current}",
-            )
-        )
+        edit_url = f"{reverse('editar_profissional', args=[p.pk])}?next={current}"
+        delete_url = f"{reverse('excluir_profissional', args=[p.pk])}?next={current}"
+        config_url = f"{reverse('configurar_profissional')}?prof={p.pk}&next={current}"
+        rows.append(_row(
+            cols=[p.nome, p.especialidade, p.crm],
+            edit_url=edit_url,
+            delete_url=delete_url,
+            extra_actions=[{"url": config_url, "icon": "bi-gear", "title": "Configurar profissional"}],
+        ))
 
-    ctx_lista = _ctx_lista(
-        titulo='Profissionais existentes',
-        headers=headers,
-        rows=rows,
-        vazio_msg='Não existe profissional cadastrado.'
-    )
     ctx = {
         'form': form,
         'titulo': 'Criar Profissional',
         'next_url': current,
-        'cancel_url': reverse('dashboard'),  # <- sempre dashboard na criação
-        **ctx_lista
+        'cancel_url': reverse('dashboard'),
+        **_ctx_lista('Profissionais existentes', headers, rows,
+                     'Não existe profissional cadastrado.')
     }
     return render(request, 'form_generic.html', ctx)
 
-# ---- Quick Add Andar ----
+# ===== Quick Add (HTMX) ======================================================
 def andar_quick_add(request):
     if request.method == 'GET':
         form = AndarForm()
@@ -360,7 +325,6 @@ def andar_quick_add(request):
     html = render_to_string('partials/andar_quick_form.html', {'form': form}, request)
     return HttpResponse(html)  # 200
 
-# ---- Quick Add Funcionalidade ----
 def func_quick_add(request):
     if request.method == 'GET':
         form = FuncionalidadeForm()
@@ -383,21 +347,17 @@ def func_quick_add(request):
     html = render_to_string('partials/func_quick_form.html', {'form': form}, request)
     return HttpResponse(html)
 
-# =========================
-# CONFIG/AGENDAMENTOS
-# =========================
+# ===== Configurar Profissional ===============================================
 @login_required
 def configurar_profissional(request):
     profissional_id = request.GET.get('prof')
 
     if request.method == 'GET' and profissional_id:
         profissional = get_object_or_404(Profissional, pk=profissional_id)
-
         try:
             parametros = profissional.profissionalparametros
             dias = profissional.profissionaldiasatendimento_set.values_list('dia_semana', flat=True)
             equipamentos = profissional.profissionalequipamento_set.values_list('equipamento', flat=True)
-
             form = ParametrosProfissionalForm(initial={
                 'profissional': profissional,
                 'n_nc': parametros.n_nc,
@@ -407,14 +367,12 @@ def configurar_profissional(request):
                 'dias_atendimento': list(dias),
                 'equipamentos': list(equipamentos),
             })
-
         except ProfissionalParametros.DoesNotExist:
             form = ParametrosProfissionalForm(initial={'profissional': profissional})
     elif request.method == 'POST':
         form = ParametrosProfissionalForm(request.POST)
         if form.is_valid():
             profissional = form.cleaned_data['profissional']
-
             ProfissionalParametros.objects.update_or_create(
                 profissional=profissional,
                 defaults={
@@ -424,11 +382,9 @@ def configurar_profissional(request):
                     't_ret': form.cleaned_data['t_ret'],
                 }
             )
-
             ProfissionalDiasAtendimento.objects.filter(profissional=profissional).delete()
             for dia in form.cleaned_data['dias_atendimento']:
                 ProfissionalDiasAtendimento.objects.create(profissional=profissional, dia_semana=dia)
-
             ProfissionalEquipamento.objects.filter(profissional=profissional).delete()
             for equipamento in form.cleaned_data['equipamentos']:
                 ProfissionalEquipamento.objects.create(profissional=profissional, equipamento=equipamento)
@@ -438,11 +394,13 @@ def configurar_profissional(request):
     else:
         form = ParametrosProfissionalForm()
 
-    return render(request, 'form_generic.html', {'form': form, 'titulo': 'Configurar Profissional', 'cancel_url': reverse('dashboard')})
+    return render(request, 'form_generic.html', {
+        'form': form,
+        'titulo': 'Configurar Profissional',
+        'cancel_url': reverse('dashboard')
+    })
 
-# =========================
-# CRUD – EDITAR (honra ?next=)
-# =========================
+# ===== EDITAR (honra ?next=) =================================================
 @login_required
 def editar_funcionalidade(request, pk):
     funcionalidade = get_object_or_404(Funcionalidade, pk=pk)
@@ -508,9 +466,7 @@ def editar_sala(request, pk):
         form = SalaForm(instance=sala)
     return render(request, 'form_generic.html', {'form': form, 'titulo': 'Editar Sala', 'next_url': request.GET.get('next')})
 
-# =========================
-# CRUD – EXCLUIR (honra ?next=)
-# =========================
+# ===== EXCLUIR (mensagens + PROTECT) ========================================
 @login_required
 def excluir_funcionalidade(request, pk):
     funcionalidade = get_object_or_404(Funcionalidade, pk=pk)
@@ -543,8 +499,11 @@ def excluir_equipamento(request, pk):
 def excluir_profissional(request, pk):
     profissional = get_object_or_404(Profissional, pk=pk)
     if request.method == 'POST':
-        profissional.delete()
-        messages.success(request, "Profissional excluído com sucesso.")
+        try:
+            profissional.delete()
+            messages.success(request, "Profissional excluído com sucesso.")
+        except ProtectedError:
+            messages.error(request, "Não é possível excluir este profissional: existem agendamentos vinculados.")
         return _safe_redirect(request)
     return render(request, 'confirm_delete.html', {
         'objeto': profissional,
@@ -557,8 +516,14 @@ def excluir_profissional(request, pk):
 def excluir_andar(request, pk):
     andar = get_object_or_404(Andar, pk=pk)
     if request.method == 'POST':
-        andar.delete()
-        messages.success(request, "Andar excluído com sucesso.")
+        try:
+            andar.delete()
+            messages.success(request, "Andar excluído com sucesso.")
+        except ProtectedError:
+            messages.error(
+                request,
+                "Não é possível excluir este andar: existem salas (ou agendamentos ligados a salas deste andar)."
+            )
         return _safe_redirect(request)
     return render(request, 'confirm_delete.html', {
         'objeto': andar,
@@ -571,8 +536,11 @@ def excluir_andar(request, pk):
 def excluir_sala(request, pk):
     sala = get_object_or_404(Sala, pk=pk)
     if request.method == 'POST':
-        sala.delete()
-        messages.success(request, "Sala excluída com sucesso.")
+        try:
+            sala.delete()
+            messages.success(request, "Sala excluída com sucesso.")
+        except ProtectedError:
+            messages.error(request, "Não é possível excluir esta sala: existem agendamentos vinculados a ela.")
         return _safe_redirect(request)
     return render(request, 'confirm_delete.html', {
         'objeto': sala,
@@ -581,9 +549,7 @@ def excluir_sala(request, pk):
         'next_url': request.GET.get('next')
     })
 
-# =========================
-# NOVO AGENDAMENTO (Cancelar -> dashboard)
-# =========================
+# ===== Novo Agendamento ======================================================
 @login_required
 def novo_agendamento(request):
     if request.method == 'POST':
@@ -597,5 +563,5 @@ def novo_agendamento(request):
     return render(request, 'form_generic.html', {
         'form': form,
         'titulo': 'Novo Agendamento',
-        'cancel_url': reverse('dashboard'),  # <- sempre dashboard
+        'cancel_url': reverse('dashboard'),
     })
