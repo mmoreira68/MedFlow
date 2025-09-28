@@ -15,11 +15,14 @@
         {% endif %}
 
         <div class="d-flex justify-content-between">
-          <a href="{{ next_url|default:request.META.HTTP_REFERER|default_if_none:''|default:'#' }}"
-             onclick="if(this.getAttribute('href')==='#'){ history.back(); return false; }"
-             class="btn btn-secondary">Cancelar</a>
+          {# Use apenas next_url com fallback para DASHBOARD_URL. Nada de request.META. #}
+          <a href="{{ next_url|default:DASHBOARD_URL }}" class="btn btn-secondary">
+            <i class="bi bi-x-circle me-1"></i> Cancelar
+          </a>
 
-          <button type="submit" class="btn btn-danger">Confirmar</button>
+          <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash3 me-1"></i> Confirmar
+          </button>
         </div>
       </form>
     </div>

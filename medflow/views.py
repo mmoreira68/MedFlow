@@ -1,3 +1,4 @@
+# views.py
 import json
 from sqlite3 import IntegrityError
 from datetime import datetime, date, timedelta
@@ -22,11 +23,17 @@ from .forms import (
     SalaForm, EquipamentoForm, ParametrosProfissionalForm
 )
 
-# ===== Helpers ===============================================================
+# =============================================================================
+# Helpers
+# =============================================================================
+
 def _current_path(request):
     return request.get_full_path()
 
 def _safe_redirect(request, fallback_name='dashboard'):
+    """
+    Redireciona para ?next= (se for seguro) ou para o named-url fallback_name.
+    """
     next_url = request.POST.get('next') or request.GET.get('next')
     if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
         return redirect(next_url)
@@ -45,7 +52,21 @@ def _ctx_lista(titulo, headers, rows, vazio_msg, subtitulo=None, mostra_acoes=Tr
 def _row(cols, edit_url, delete_url, extra_actions=None):
     return {"cols": cols, "edit": edit_url, "delete": delete_url, "extra": extra_actions or []}
 
-# ===== Público / Auth ========================================================
+def _ensure_referer(request, fallback=None):
+    """
+    Garante que request.META['HTTP_REFERER'] exista para templates que o usam.
+    Usa ?next= se disponível; caso contrário, usa fallback (padrão: dashboard).
+    """
+    if fallback is None:
+        fallback = reverse('dashboard')
+    referer = request.META.get('HTTP_REFERER') or request.GET.get('next') or fallback
+    request.META['HTTP_REFERER'] = referer
+    return referer
+
+# =============================================================================
+# Público / Auth
+# =============================================================================
+
 def home(request):
     return render(request, 'home.html')
 
@@ -81,7 +102,10 @@ def logout_view(request):
     logout(request)
     return redirect('home')
 
-# ===== Dashboard =============================================================
+# =============================================================================
+# Dashboard
+# =============================================================================
+
 @login_required
 def dashboard(request):
     andares = Andar.objects.prefetch_related('sala_set').all()
@@ -96,7 +120,10 @@ def dashboard(request):
         'equipamentos': equipamentos,
     })
 
-# ===== Agendamentos ==========================================================
+# =============================================================================
+# Agendamentos
+# =============================================================================
+
 @login_required
 def agendar_sala(request, sala_id):
     sala = get_object_or_404(Sala, id=sala_id)
@@ -138,7 +165,10 @@ def lista_agendamentos(request):
     }
     return render(request, 'agendamentos.html', context)
 
-# ===== CRIAR + listas abaixo =================================================
+# =============================================================================
+# Criar + listas
+# =============================================================================
+
 @login_required
 def criar_andar(request):
     if request.method == 'POST':
@@ -167,6 +197,7 @@ def criar_andar(request):
         'cancel_url': reverse('dashboard'),
         **_ctx_lista('Andares existentes', ['Nome'], rows, 'Não existe andar cadastrado.')
     }
+    _ensure_referer(request, fallback=reverse('dashboard'))
     return render(request, 'form_generic.html', ctx)
 
 @login_required
@@ -202,6 +233,7 @@ def criar_sala(request, andar_id):
         **_ctx_lista('Salas no andar', ['Número', 'Nome', 'Funcionalidade'], rows,
                      'Não existe sala cadastrada neste andar.', subtitulo=str(andar.nome))
     }
+    _ensure_referer(request, fallback=reverse('criar_andar'))
     return render(request, 'form_generic.html', ctx)
 
 @login_required
@@ -233,6 +265,7 @@ def criar_funcionalidade(request):
         **_ctx_lista('Funcionalidades existentes', ['Nome'], rows,
                      'Não existe funcionalidade cadastrada.')
     }
+    _ensure_referer(request, fallback=reverse('dashboard'))
     return render(request, 'form_generic.html', ctx)
 
 @login_required
@@ -264,6 +297,7 @@ def criar_equipamento(request):
         **_ctx_lista('Equipamentos existentes', ['Nome'], rows,
                      'Não existe equipamento cadastrado.')
     }
+    _ensure_referer(request, fallback=reverse('dashboard'))
     return render(request, 'form_generic.html', ctx)
 
 @login_required
@@ -300,9 +334,13 @@ def criar_profissional(request):
         **_ctx_lista('Profissionais existentes', headers, rows,
                      'Não existe profissional cadastrado.')
     }
+    _ensure_referer(request, fallback=reverse('dashboard'))
     return render(request, 'form_generic.html', ctx)
 
-# ===== Quick Add (HTMX) ======================================================
+# =============================================================================
+# Quick Add (HTMX)
+# =============================================================================
+
 def andar_quick_add(request):
     if request.method == 'GET':
         form = AndarForm()
@@ -347,7 +385,10 @@ def func_quick_add(request):
     html = render_to_string('partials/func_quick_form.html', {'form': form}, request)
     return HttpResponse(html)
 
-# ===== Configurar Profissional ===============================================
+# =============================================================================
+# Configurar Profissional
+# =============================================================================
+
 @login_required
 def configurar_profissional(request):
     profissional_id = request.GET.get('prof')
@@ -394,79 +435,17 @@ def configurar_profissional(request):
     else:
         form = ParametrosProfissionalForm()
 
+    _ensure_referer(request, fallback=reverse('dashboard'))
     return render(request, 'form_generic.html', {
         'form': form,
         'titulo': 'Configurar Profissional',
         'cancel_url': reverse('dashboard')
     })
 
-# ===== EDITAR (honra ?next=) =================================================
-@login_required
-def editar_funcionalidade(request, pk):
-    funcionalidade = get_object_or_404(Funcionalidade, pk=pk)
-    if request.method == 'POST':
-        form = FuncionalidadeForm(request.POST, instance=funcionalidade)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Funcionalidade atualizada com sucesso.")
-            return _safe_redirect(request)
-    else:
-        form = FuncionalidadeForm(instance=funcionalidade)
-    return render(request, 'form_generic.html', {'form': form, 'titulo': 'Editar Funcionalidade', 'next_url': request.GET.get('next')})
+# =============================================================================
+# Excluir (Confirm Delete)
+# =============================================================================
 
-@login_required
-def editar_equipamento(request, pk):
-    equipamento = get_object_or_404(Equipamento, pk=pk)
-    if request.method == 'POST':
-        form = EquipamentoForm(request.POST, instance=equipamento)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Equipamento atualizado com sucesso.")
-            return _safe_redirect(request)
-    else:
-        form = EquipamentoForm(instance=equipamento)
-    return render(request, 'form_generic.html', {'form': form, 'titulo': 'Editar Equipamento', 'next_url': request.GET.get('next')})
-
-@login_required
-def editar_profissional(request, pk):
-    profissional = get_object_or_404(Profissional, pk=pk)
-    if request.method == 'POST':
-        form = ProfissionalForm(request.POST, instance=profissional)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Profissional atualizado com sucesso.")
-            return _safe_redirect(request)
-    else:
-        form = ProfissionalForm(instance=profissional)
-    return render(request, 'form_generic.html', {'form': form, 'titulo': 'Editar Profissional', 'next_url': request.GET.get('next')})
-
-@login_required
-def editar_andar(request, pk):
-    andar = get_object_or_404(Andar, pk=pk)
-    if request.method == 'POST':
-        form = AndarForm(request.POST, instance=andar)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Andar atualizado com sucesso.")
-            return _safe_redirect(request)
-    else:
-        form = AndarForm(instance=andar)
-    return render(request, 'form_generic.html', {'form': form, 'titulo': 'Editar Andar', 'next_url': request.GET.get('next')})
-
-@login_required
-def editar_sala(request, pk):
-    sala = get_object_or_404(Sala, pk=pk)
-    if request.method == 'POST':
-        form = SalaForm(request.POST, instance=sala)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Sala atualizada com sucesso.")
-            return _safe_redirect(request)
-    else:
-        form = SalaForm(instance=sala)
-    return render(request, 'form_generic.html', {'form': form, 'titulo': 'Editar Sala', 'next_url': request.GET.get('next')})
-
-# ===== EXCLUIR (mensagens + PROTECT) ========================================
 @login_required
 def excluir_funcionalidade(request, pk):
     funcionalidade = get_object_or_404(Funcionalidade, pk=pk)
@@ -474,11 +453,14 @@ def excluir_funcionalidade(request, pk):
         funcionalidade.delete()
         messages.success(request, "Funcionalidade excluída com sucesso.")
         return _safe_redirect(request)
+
+    next_url = request.GET.get('next') or reverse('dashboard')
     return render(request, 'confirm_delete.html', {
         'objeto': funcionalidade,
         'titulo': 'Excluir Funcionalidade',
         'descricao': 'Tem certeza que deseja excluir esta funcionalidade?',
-        'next_url': request.GET.get('next')
+        'next_url': next_url,
+        'DASHBOARD_URL': reverse('dashboard'),
     })
 
 @login_required
@@ -488,11 +470,14 @@ def excluir_equipamento(request, pk):
         equipamento.delete()
         messages.success(request, "Equipamento excluído com sucesso.")
         return _safe_redirect(request)
+
+    next_url = request.GET.get('next') or reverse('dashboard')
     return render(request, 'confirm_delete.html', {
         'objeto': equipamento,
         'titulo': 'Excluir Equipamento',
         'descricao': 'Tem certeza que deseja excluir este equipamento?',
-        'next_url': request.GET.get('next')
+        'next_url': next_url,
+        'DASHBOARD_URL': reverse('dashboard'),
     })
 
 @login_required
@@ -505,11 +490,14 @@ def excluir_profissional(request, pk):
         except ProtectedError:
             messages.error(request, "Não é possível excluir este profissional: existem agendamentos vinculados.")
         return _safe_redirect(request)
+
+    next_url = request.GET.get('next') or reverse('dashboard')
     return render(request, 'confirm_delete.html', {
         'objeto': profissional,
         'titulo': 'Excluir Profissional',
         'descricao': 'Tem certeza que deseja excluir este profissional?',
-        'next_url': request.GET.get('next')
+        'next_url': next_url,
+        'DASHBOARD_URL': reverse('dashboard'),
     })
 
 @login_required
@@ -525,11 +513,14 @@ def excluir_andar(request, pk):
                 "Não é possível excluir este andar: existem salas (ou agendamentos ligados a salas deste andar)."
             )
         return _safe_redirect(request)
+
+    next_url = request.GET.get('next') or reverse('dashboard')
     return render(request, 'confirm_delete.html', {
         'objeto': andar,
         'titulo': 'Excluir Andar',
         'descricao': 'Tem certeza que deseja excluir este andar?',
-        'next_url': request.GET.get('next')
+        'next_url': next_url,
+        'DASHBOARD_URL': reverse('dashboard'),
     })
 
 @login_required
@@ -542,14 +533,20 @@ def excluir_sala(request, pk):
         except ProtectedError:
             messages.error(request, "Não é possível excluir esta sala: existem agendamentos vinculados a ela.")
         return _safe_redirect(request)
+
+    next_url = request.GET.get('next') or reverse('dashboard')
     return render(request, 'confirm_delete.html', {
         'objeto': sala,
         'titulo': 'Excluir Sala',
         'descricao': 'Tem certeza que deseja excluir esta sala?',
-        'next_url': request.GET.get('next')
+        'next_url': next_url,
+        'DASHBOARD_URL': reverse('dashboard'),
     })
 
-# ===== Novo Agendamento ======================================================
+# =============================================================================
+# Novo Agendamento
+# =============================================================================
+
 @login_required
 def novo_agendamento(request):
     if request.method == 'POST':
@@ -560,8 +557,128 @@ def novo_agendamento(request):
             return redirect('lista_agendamentos')
     else:
         form = AgendamentoSalaForm()
+    _ensure_referer(request, fallback=reverse('dashboard'))
     return render(request, 'form_generic.html', {
         'form': form,
         'titulo': 'Novo Agendamento',
         'cancel_url': reverse('dashboard'),
     })
+
+# =============================================================================
+# Editar
+# =============================================================================
+
+@login_required
+def editar_funcionalidade(request, pk):
+    obj = get_object_or_404(Funcionalidade, pk=pk)
+
+    if request.method == 'POST':
+        form = FuncionalidadeForm(request.POST, instance=obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Funcionalidade atualizada com sucesso.")
+            return _safe_redirect(request)  # honra ?next=
+    else:
+        form = FuncionalidadeForm(instance=obj)
+
+    current = _current_path(request)
+    ctx = {
+        'form': form,
+        'titulo': 'Editar Funcionalidade',
+        'next_url': current,
+        'cancel_url': request.GET.get('next') or reverse('dashboard'),
+    }
+    _ensure_referer(request, fallback=reverse('dashboard'))
+    return render(request, 'form_generic.html', ctx)
+
+@login_required
+def editar_equipamento(request, pk):
+    obj = get_object_or_404(Equipamento, pk=pk)
+
+    if request.method == 'POST':
+        form = EquipamentoForm(request.POST, instance=obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Equipamento atualizado com sucesso.")
+            return _safe_redirect(request)  # honra ?next=
+    else:
+        form = EquipamentoForm(instance=obj)
+
+    current = _current_path(request)
+    ctx = {
+        'form': form,
+        'titulo': 'Editar Equipamento',
+        'next_url': current,
+        'cancel_url': request.GET.get('next') or reverse('dashboard'),
+    }
+    _ensure_referer(request, fallback=reverse('dashboard'))
+    return render(request, 'form_generic.html', ctx)
+
+@login_required
+def editar_andar(request, pk):
+    obj = get_object_or_404(Andar, pk=pk)
+
+    if request.method == 'POST':
+        form = AndarForm(request.POST, instance=obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Andar atualizado com sucesso.")
+            return _safe_redirect(request)
+    else:
+        form = AndarForm(instance=obj)
+
+    current = _current_path(request)
+    ctx = {
+        'form': form,
+        'titulo': 'Editar Andar',
+        'next_url': current,
+        'cancel_url': request.GET.get('next') or reverse('dashboard'),
+    }
+    _ensure_referer(request, fallback=reverse('dashboard'))
+    return render(request, 'form_generic.html', ctx)
+
+@login_required
+def editar_sala(request, pk):
+    obj = get_object_or_404(Sala, pk=pk)
+
+    if request.method == 'POST':
+        form = SalaForm(request.POST, instance=obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Sala atualizada com sucesso.")
+            return _safe_redirect(request)
+    else:
+        form = SalaForm(instance=obj)
+
+    current = _current_path(request)
+    ctx = {
+        'form': form,
+        'titulo': 'Editar Sala',
+        'next_url': current,
+        'cancel_url': request.GET.get('next') or reverse('dashboard'),
+    }
+    _ensure_referer(request, fallback=reverse('dashboard'))
+    return render(request, 'form_generic.html', ctx)
+
+@login_required
+def editar_profissional(request, pk):
+    obj = get_object_or_404(Profissional, pk=pk)
+
+    if request.method == 'POST':
+        form = ProfissionalForm(request.POST, instance=obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profissional atualizado com sucesso.")
+            return _safe_redirect(request)
+    else:
+        form = ProfissionalForm(instance=obj)
+
+    current = _current_path(request)
+    ctx = {
+        'form': form,
+        'titulo': 'Editar Profissional',
+        'next_url': current,
+        'cancel_url': request.GET.get('next') or reverse('dashboard'),
+    }
+    _ensure_referer(request, fallback=reverse('dashboard'))
+    return render(request, 'form_generic.html', ctx)
