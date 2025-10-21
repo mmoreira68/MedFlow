@@ -5,3 +5,7 @@ db.sqlite3
 populate_data.py
 venv/
 medflow/migrations
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
