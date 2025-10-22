@@ -1,0 +1,25 @@
+# --- keep critical deploy files ---
+!.platform/**
+!.ebextensions/**
+!Procfile
+!requirements.txt
+
+# --- ignore local/dev clutter ---
+.git/
+.gitignore
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.egg-info
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+node_modules/
+tests/
+pytest.ini
+.env
