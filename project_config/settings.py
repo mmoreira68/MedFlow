@@ -14,10 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Segurança / Execução
 # ------------------------------------------------------------------------------
 # Em produção, NUNCA deixe a SECRET_KEY hardcoded. Use variável de ambiente.
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-!tpq(hv%rw__sjz!3l0@$+7#16uk&wdh-l=xk#1tqvg*&v78^2",  # fallback para dev
-)
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-key")
 
 # Ative DEBUG apenas quando precisar. No EB definiremos DEBUG=False.
 DEBUG = os.environ.get("DEBUG", "False") == "True"
@@ -111,6 +108,12 @@ USE_TZ = True
 # ------------------------------------------------------------------------------
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"   # onde o collectstatic escreve para produção
+
+# Em DEV (local), evita manifest:
+if os.environ.get("DEBUG", "False") == "True":
+    STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+else:
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Se você tem uma pasta 'static/' com assets do projeto (como no seu repo):
 STATICFILES_DIRS = [

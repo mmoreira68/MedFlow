@@ -1,0 +1,27 @@
+{
+  "ServiceName": "medflow-apprunner",
+  "SourceConfiguration": {
+    "ImageRepository": {
+      "ImageIdentifier": "600627343730.dkr.ecr.us-west-2.amazonaws.com/medflow:latest",
+      "ImageRepositoryType": "ECR",
+      "ImageConfiguration": {
+        "Port": "8000",
+        "RuntimeEnvironmentVariables": [
+          {"Name": "DEBUG", "Value": "False"},
+          {"Name": "DJANGO_SECRET_KEY", "Value": "9(w0^d3z#j-b6s@x!q4m*p%v2r+o8u&l7e@c5h)t1y/a"},
+          {"Name": "ALLOWED_HOSTS", "Value": "*"}
+        ]
+      }
+    },
+    "AutoDeploymentsEnabled": true
+  },
+  "InstanceConfiguration": { "Cpu": "1 vCPU", "Memory": "2 GB" },
+  "HealthCheckConfiguration": {
+    "Protocol": "HTTP",
+    "Path": "/healthz",
+    "Interval": 10,
+    "Timeout": 5,
+    "HealthyThreshold": 1,
+    "UnhealthyThreshold": 5
+  }
+}
