@@ -28,6 +28,17 @@ ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(",")
 _raw_csrf = os.environ.get("CSRF_TRUSTED_ORIGINS", "")
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in _raw_csrf.split(",") if o.strip()]
 
+_sp = os.environ.get("SECURE_PROXY_SSL_HEADER")
+if _sp:
+    try:
+        header, value = [p.strip() for p in _sp.split(",", 1)]
+        SECURE_PROXY_SSL_HEADER = (header, value)
+    except Exception:
+        pass  # se vier malformado, ignora
+
+SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "True") == "True"
+CSRF_COOKIE_SECURE    = os.environ.get("CSRF_COOKIE_SECURE", "True") == "True"
+
 # ------------------------------------------------------------------------------
 # Application definition
 # ------------------------------------------------------------------------------
