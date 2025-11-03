@@ -4,6 +4,5 @@ __pycache__/
 db.sqlite3
 populate_data.py
 venv/
-medflow/migrations
 # Static collecion
 staticfiles/
