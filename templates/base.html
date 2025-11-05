@@ -1,43 +1,50 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="pt-br">
-
+<html lang="pt-br" class="h-100">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MedFlow - Gestão Hospitalar</title>
 
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-  <!-- Bootstrap Icons (para os ícones dos botões) -->
+  <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
   <style>
+    /* Layout básico */
+    html, body { height: 100%; }
     body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;           /* ocupa a viewport toda */
       background-color: #f8f9fa;
+      overflow: hidden;            /* impede scroll na página; o scroll fica no <main> */
     }
 
-    .navbar {
-      background-color: #007bff;
+    /* Navbar */
+    .navbar { background-color: #0d6efd; }
+    .navbar-brand, .nav-link, .navbar-text { color: #ffffff !important; }
+    .text-strong-yellow { color: #ffc107 !important; }
+
+    /* Área central que deve rolar entre header e footer */
+    main#app-main {
+      flex: 1 1 auto;              /* ocupa o espaço disponível */
+      min-height: 0;               /* importante para o overflow funcionar em flex */
+      overflow-y: auto;            /* rolagem fica aqui */
+      padding-top: 1rem;
+      padding-bottom: 1rem;
     }
 
-    .navbar-brand,
-    .nav-link,
-    .navbar-text {
-      color: #ffffff !important;
-    }
-
-    .text-strong-yellow {
-      color: #ffc107 !important;
-    }
-
-    footer {
-      margin-top: 50px;
-      padding: 20px 0;
-      background-color: #007bff;
-      color: white;
+    /* Footer colado embaixo sempre */
+    footer.site-footer {
+      margin-top: 0;
+      padding: 16px 0;
+      background-color: #0d6efd;
+      color: #fff;
       text-align: center;
+      flex-shrink: 0;              /* não encolhe */
     }
   </style>
 
@@ -45,14 +52,7 @@
 
   <script>
     // Fecha modal (HTMX)
-    document.body.addEventListener('closeModal', function () {
-      const el = document.getElementById('quickAddModal');
-      if (!el) return;
-      const inst = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
-      inst.hide();
-    });
-
-    window.addEventListener('closeModal', function () {
+    document.body?.addEventListener('closeModal', function () {
       const el = document.getElementById('quickAddModal');
       if (!el) return;
       const inst = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
@@ -62,61 +62,67 @@
     });
   </script>
 </head>
-
-<body>
-
+<body class="h-100">
+  <!-- Header -->
   <nav class="navbar navbar-expand-lg">
     <div class="container">
-      <a class="navbar-brand" href="{% url 'home' %}">MedFlow</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
+        <img src="{% static 'image/logo_medflow.png' %}" alt="Logotipo MedFlow" style="height:24px;width:auto;">
+        MedFlow
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+              aria-controls="navbarNav" aria-expanded="false" aria-label="Alternar navegação">
         <span class="navbar-toggler-icon"></span>
       </button>
+
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
           {% if user.is_authenticated %}
-          <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Administração</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'visualizar_agendamentos' %}">Agendamentos</a></li>
-          <li class="nav-item"><a class="nav-link text-strong-yellow" href="{% url 'logout' %}">Logout</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'visualizar_agendamentos' %}">Agendamentos</a></li>
+            <li class="nav-item"><a class="nav-link text-strong-yellow" href="{% url 'logout' %}">Sair</a></li>
           {% else %}
-          <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Entrar</a></li>
           {% endif %}
         </ul>
       </div>
     </div>
   </nav>
 
-  <!-- Bloco de mensagens -->
-  <div class="container mt-3">
+  <!-- Mensagens -->
+  <div class="container mt-2">
     {% if messages %}
-    {% for message in messages %}
-    <div
-      class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show"
-      role="alert">
-      {{ message }}
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    {% endfor %}
+      {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+      {% endfor %}
     {% endif %}
   </div>
 
-  <div class="container mt-4">
+  <!-- Área rolável entre header e footer -->
+  <main id="app-main" class="h-100">
     {% block content %}{% endblock %}
-  </div>
+  </main>
 
-  <footer class="mt-5">
-    <p>&copy; 2025 MedFlow - Gestão de Salas Hospitalares</p>
+  <!-- Footer fixo ao final da viewport -->
+  <footer class="site-footer">
+    <div class="container">
+      <p class="mb-0">&copy; 2025 MedFlow - Gestão de Salas Hospitalares</p>
+    </div>
   </footer>
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- Ativa tooltips (títulos dos botões) -->
+  <!-- Ativa tooltips (títulos/aria-title dos botões) -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-      tooltipTriggerList.forEach(el => new bootstrap.Tooltip(el))
+      const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+      tooltipTriggerList.forEach(el => new bootstrap.Tooltip(el));
     });
   </script>
 </body>
-
 </html>

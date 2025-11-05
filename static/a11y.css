@@ -1,0 +1,89 @@
+/* ===== Acessibilidade base (WCAG AA) ===== */
+
+/* Tokens de cor com bom contraste em superfícies claras */
+:root {
+  /* superfícies */
+  --bg: #ffffff;
+  --bg-muted: #f5f7fa;
+
+  /* texto */
+  --text: #111827;           /* gray-900 */
+  --text-muted: #374151;     /* gray-700 */
+
+  /* link e ações */
+  --link: #0a66c2;           /* contraste > 6:1 sobre branco */
+  --link-hover: #084f99;
+
+  /* botões */
+  --primary: #1d4ed8;        /* blue-700 */
+  --primary-hover: #1e40af;  /* blue-800 */
+  --primary-text: #ffffff;   /* contraste ~7:1 */
+  --secondary: #374151;      /* gray-700 */
+  --secondary-hover: #1f2937;/* gray-800 */
+  --secondary-text: #ffffff; /* contraste > 7:1 */
+
+  /* bordas / divisores */
+  --border: #e5e7eb;
+
+  /* foco visível */
+  --focus: #f59e0b;          /* amber-500, contraste alto como outline */
+}
+
+/* Tipografia e cores padrão */
+html { color: var(--text); background: var(--bg); }
+a { color: var(--link); text-underline-offset: 2px; }
+a:hover { color: var(--link-hover); }
+
+/* Botões com contraste garantido */
+.btn { 
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: .5rem; padding: .625rem .95rem; border-radius: .5rem;
+  border: 1px solid transparent; font-weight: 600; line-height: 1.2;
+}
+.btn:focus-visible, .link-like:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.btn--primary { background: var(--primary); color: var(--primary-text); }
+.btn--primary:hover { background: var(--primary-hover); }
+.btn--secondary { background: var(--secondary); color: var(--secondary-text); }
+.btn--secondary:hover { background: var(--secondary-hover); }
+
+/* Links “botão” com contraste e foco visível */
+.link-like { color: var(--link); font-weight: 600; }
+
+/* Campos de formulário */
+input, select, textarea {
+  border: 1px solid var(--border);
+  border-radius: .5rem; padding: .6rem .7rem; width: 100%;
+  color: var(--text); background: var(--bg);
+}
+label { font-weight: 600; color: var(--text); }
+
+/* Mensagens de erro legíveis por leitor de tela */
+.form-error {
+  color: #991b1b; /* red-800 */
+  margin-top: .25rem;
+}
+[role="alert"] { /* usado pra erros inline acessíveis */
+  padding: .5rem .75rem; border-left: 4px solid #b91c1c; background: #fef2f2;
+}
+
+/* Skip link (acesso rápido ao conteúdo) */
+.skip-link {
+  position: absolute; left: -9999px; top: -9999px;
+}
+.skip-link:focus {
+  left: 1rem; top: 1rem; z-index: 1000;
+  background: var(--primary); color: var(--primary-text);
+  padding: .5rem .75rem; border-radius: .5rem;
+}
+
+/* Tabelas acessíveis */
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid var(--border); padding: .5rem .75rem; }
+th { background: var(--bg-muted); text-align: left; }
+
+/* Utilitários de contraste */
+.text-muted { color: var(--text-muted); }
+.bg-muted { background: var(--bg-muted); }

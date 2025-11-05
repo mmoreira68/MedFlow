@@ -1,0 +1,12 @@
+<nav role="navigation" aria-label="Principal" style="margin-left:auto;">
+  <ul style="display:flex;gap:1rem;list-style:none;margin:0;padding:0;">
+    <li><a class="link-like" href="{% url 'home' %}">Início</a></li>
+    <li><a class="link-like" href="{% url 'dashboard' %}">Dashboard</a></li>
+    {% if request.user.is_authenticated %}
+      <li><a class="link-like" href="{% url 'logout' %}">Sair</a></li>
+    {% else %}
+      <!-- Mesmo texto “Entrar” em todos os lugares que levam para login -->
+      <li><a class="link-like" href="{% url 'login' %}">Entrar</a></li>
+    {% endif %}
+  </ul>
+</nav>
