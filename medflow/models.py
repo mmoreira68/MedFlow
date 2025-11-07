@@ -26,13 +26,12 @@ class Funcionalidade(UniqueNormalizedNameMixin):
 class Sala(models.Model):
     numero = models.IntegerField(unique=True, verbose_name="Número")
     nome = models.CharField(max_length=100, unique=True)
-    # PROTECT para impedir excluir Andar com salas
     andar = models.ForeignKey(Andar, on_delete=PROTECT)
     funcao = models.ForeignKey(
         Funcionalidade,
         on_delete=models.CASCADE,
         max_length=50,
-        verbose_name="Funcionalidade"
+        verbose_name="Funcionalidade",
     )
 
     def __str__(self):
@@ -58,20 +57,24 @@ class SalaEquipamento(models.Model):
     def __str__(self):
         return f"{self.sala} - {self.equipamento}"
 
+class Especialidade(UniqueNormalizedNameMixin):
+    class Meta(UniqueNormalizedNameMixin.Meta):
+        verbose_name = "Especialidade"
+        verbose_name_plural = "Especialidades"
 
-# ================================================================================
-
+    def __str__(self):
+        return self.nome
+    
 class Profissional(NormalizedNameMixin):
-    """
-    Homônimos permitidos; diferencia por CRM único.
-    """
-    especialidade = models.CharField(max_length=100)
+    especialidade = models.ForeignKey(
+        'Especialidade',
+        on_delete=PROTECT,
+        related_name='profissionais'
+    )
     crm = models.CharField(max_length=30, unique=True)
-
     class Meta(NormalizedNameMixin.Meta):
         verbose_name = "Profissional"
         verbose_name_plural = "Profissionais"
-
     def __str__(self):
         return f"{self.nome} - {self.especialidade} (CRM {self.crm})"
 
@@ -113,12 +116,8 @@ class ProfissionalDiasAtendimento(models.Model):
         return f"{self.profissional} - {self.dia_semana}"
 
 
-# ================================================================================
-
 class AgendamentoSala(models.Model):
-    # PROTECT para impedir excluir Profissional com agendamento
     profissional = models.ForeignKey('Profissional', on_delete=PROTECT)
-    # PROTECT para impedir excluir Sala com agendamento
     sala = models.ForeignKey('Sala', on_delete=PROTECT)
     data_agendamento = models.DateField(default='2025-01-01')
     horario_inicio = models.TimeField()

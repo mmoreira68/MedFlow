@@ -1,0 +1,14 @@
+<form hx-post="{% url 'especialidade_quick_add' %}" hx-target="#quickAddBody" hx-swap="innerHTML">
+  {% csrf_token %}
+  <div class="mb-3">
+    <label for="{{ form.nome.id_for_label }}" class="form-label">Nome da Especialidade</label>
+    {{ form.nome }}
+    {% if form.nome.errors %}
+      <div class="text-danger small mt-1">{% for e in form.nome.errors %}{{ e }}{% endfor %}</div>
+    {% endif %}
+  </div>
+  <div class="d-flex justify-content-end gap-2">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+    <button type="submit" class="btn btn-primary">Salvar</button>
+  </div>
+</form>

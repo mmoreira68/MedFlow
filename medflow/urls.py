@@ -39,7 +39,13 @@ urlpatterns = [
     path('profissional/editar/<int:pk>/', views.editar_profissional, name='editar_profissional'),
     path('profissional/excluir/<int:pk>/', views.excluir_profissional, name='excluir_profissional'),
 
-    # Quick-add andar-função (HTMX)
+    # Especialidade
+    path('criar-especialidade/', views.criar_especialidade, name='criar_especialidade'),
+    path('especialidade/editar/<int:pk>/', views.editar_especialidade, name='editar_especialidade'),
+    path('especialidade/excluir/<int:pk>/', views.excluir_especialidade, name='excluir_especialidade'),
+
+    # Quick-add (HTMX)
     path('andar/quick-add/', views.andar_quick_add, name='andar_quick_add'),
     path('funcionalidade/quick-add/', views.func_quick_add, name='func_quick_add'),
+    path('especialidade/quick-add/', views.especialidade_quick_add, name='especialidade_quick_add'),
 ]

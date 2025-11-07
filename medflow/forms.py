@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import unicodedata
 
 from .models import (
-    AgendamentoSala, Andar, Equipamento, Profissional,
+    AgendamentoSala, Andar, Equipamento, Especialidade, Profissional,
     Sala, Funcionalidade
 )
 
@@ -97,6 +97,12 @@ class SalaForm(forms.ModelForm):
             'nome': 'Nome',
             'andar': 'Andar',
         }
+
+class EspecialidadeForm(forms.ModelForm):
+    class Meta:
+        model = Especialidade
+        fields = ["nome"]
+        widgets = {"nome": forms.TextInput(attrs={"class": "form-control", "required": True})}
 
 
 # ------------------------------

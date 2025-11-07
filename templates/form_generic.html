@@ -17,7 +17,6 @@
         </div>
         {% endif %}
 
-        {# Número #}
         {% if form.numero %}
         <div class="mb-3">
           <label for="{{ form.numero.id_for_label }}" class="form-label">Número</label>
@@ -28,7 +27,6 @@
         </div>
         {% endif %}
 
-        {# Nome #}
         {% if form.nome %}
         <div class="mb-3">
           <label for="{{ form.nome.id_for_label }}" class="form-label">Nome</label>
@@ -39,7 +37,6 @@
         </div>
         {% endif %}
 
-        {# Andar + quick add #}
         {% if form.andar %}
         <div class="mb-3 d-flex align-items-end gap-2">
           <div class="flex-grow-1">
@@ -57,7 +54,6 @@
         </div>
         {% endif %}
 
-        {# Funcionalidade + quick add (campo real = funcao) #}
         {% if form.funcao %}
         <div class="mb-3 d-flex align-items-end gap-2">
           <div class="flex-grow-1">
@@ -75,9 +71,26 @@
         </div>
         {% endif %}
 
-        {# Outros campos #}
+        {# === NOVO: Especialidade + quick-add === #}
+        {% if form.especialidade %}
+        <div class="mb-3 d-flex align-items-end gap-2">
+          <div class="flex-grow-1">
+            <label for="{{ form.especialidade.id_for_label }}" class="form-label">Especialidade</label>
+            {{ form.especialidade }}
+            {% if form.especialidade.errors %}
+            <div class="text-danger">{% for e in form.especialidade.errors %}{{ e }}{% endfor %}</div>
+            {% endif %}
+          </div>
+          <button type="button" class="btn btn-outline-primary" hx-get="{% url 'especialidade_quick_add' %}"
+            hx-target="#quickAddBody" hx-swap="innerHTML" data-bs-toggle="modal" data-bs-target="#quickAddModal"
+            onclick="document.getElementById('quickAddTitle').innerText='Nova Especialidade'">
+            <i class="bi bi-plus-circle me-1"></i> Especialidade
+          </button>
+        </div>
+        {% endif %}
+
         {% for field in form %}
-        {% if field.name not in 'numero nome andar funcao' %}
+        {% if field.name not in 'numero nome andar funcao especialidade' %}
         <div class="mb-3">
           <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
           {{ field }}
@@ -97,14 +110,11 @@
           </button>
         </div>
 
-        {% if next_url %}
-        <input type="hidden" name="next" value="{{ next_url }}">
-        {% endif %}
+        {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
       </form>
     </div>
   </div>
 
-  {# Lista abaixo do formulário (se fornecida pela view) #}
   {% if lista_headers and lista_rows is not None %}
   <div class="card shadow-sm mt-4">
     <div class="card-header bg-light">
@@ -126,22 +136,17 @@
           <tbody>
             {% for r in lista_rows %}
             <tr>
-              {% for c in r.cols %}
-              <td>{{ c }}</td>
-              {% endfor %}
+              {% for c in r.cols %}<td>{{ c }}</td>{% endfor %}
               {% if lista_mostra_acoes %}
               <td class="text-end">
-                {# ações extras (ex.: configurar profissional) #}
                 {% if r.extra %}
-                {% for act in r.extra %}
-                <a href="{{ act.url }}" class="btn btn-sm btn-outline-secondary me-1" title="{{ act.title }}"
-                  data-bs-toggle="tooltip">
-                  <i class="bi {{ act.icon }}"></i>
-                </a>
-                {% endfor %}
+                  {% for act in r.extra %}
+                    <a href="{{ act.url }}" class="btn btn-sm btn-outline-secondary me-1" title="{{ act.title }}" data-bs-toggle="tooltip">
+                      <i class="bi {{ act.icon }}"></i>
+                    </a>
+                  {% endfor %}
                 {% endif %}
-                <a href="{{ r.edit }}" class="btn btn-sm btn-outline-primary me-1" title="Editar"
-                  data-bs-toggle="tooltip">
+                <a href="{{ r.edit }}" class="btn btn-sm btn-outline-primary me-1" title="Editar" data-bs-toggle="tooltip">
                   <i class="bi bi-pencil-square"></i>
                 </a>
                 <a href="{{ r.delete }}" class="btn btn-sm btn-outline-danger" title="Excluir" data-bs-toggle="tooltip">
@@ -155,9 +160,7 @@
         </table>
       </div>
       {% else %}
-      <div class="p-3">
-        <em>{{ lista_vazia_msg }}</em>
-      </div>
+      <div class="p-3"><em>{{ lista_vazia_msg }}</em></div>
       {% endif %}
     </div>
   </div>
@@ -165,7 +168,6 @@
 
 </div>
 
-{# Modal reutilizável #}
 <div class="modal fade" id="quickAddModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -173,9 +175,7 @@
         <h5 class="modal-title" id="quickAddTitle">Adicionar</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body" id="quickAddBody">
-        <!-- HTMX insere o form parcial aqui -->
-      </div>
+      <div class="modal-body" id="quickAddBody"></div>
     </div>
   </div>
 </div>

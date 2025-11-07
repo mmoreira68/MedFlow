@@ -4,44 +4,44 @@ from .models import (
     Equipamento, SalaEquipamento,
     Profissional, ProfissionalEquipamento, ProfissionalParametros,
     ProfissionalDiasAtendimento,
-    AgendamentoSala
+    AgendamentoSala, Especialidade
 )
 
-# ANDAR
 @admin.register(Andar)
 class AndarAdmin(admin.ModelAdmin):
     list_display = ("nome",)
     search_fields = ("nome", "nome_norm")
 
-# FUNCIONALIDADE
 @admin.register(Funcionalidade)
 class FuncionalidadeAdmin(admin.ModelAdmin):
     list_display = ("nome",)
     search_fields = ("nome", "nome_norm")
 
-# SALA (sem mudanças estruturais)
 @admin.register(Sala)
 class SalaAdmin(admin.ModelAdmin):
     list_display = ("andar","nome","funcao",)
     search_fields = ("nome",)
     list_filter = ("andar", "funcao")
 
-# EQUIPAMENTO
 @admin.register(Equipamento)
 class EquipamentoAdmin(admin.ModelAdmin):
     list_display = ("nome",)
     search_fields = ("nome", "nome_norm")
 
-# RELAÇÃO SALA-EQUIPAMENTO
 @admin.register(SalaEquipamento)
 class SalaEquipamentoAdmin(admin.ModelAdmin):
     list_display = ("sala","equipamento",)
 
-# PROFISSIONAL
+# NOVO
+@admin.register(Especialidade)
+class EspecialidadeAdmin(admin.ModelAdmin):
+    list_display = ("nome",)
+    search_fields = ("nome", "nome_norm")
+
 @admin.register(Profissional)
 class ProfissionalAdmin(admin.ModelAdmin):
     list_display = ("nome","especialidade","crm")
-    search_fields = ("nome", "nome_norm", "especialidade", "crm")
+    search_fields = ("nome", "nome_norm", "especialidade__nome", "crm")
     list_filter = ("especialidade",)
 
 @admin.register(ProfissionalEquipamento)
@@ -56,7 +56,6 @@ class ProfissionalParametrosAdmin(admin.ModelAdmin):
 class ProfissionalDiasAtendimentoAdmin(admin.ModelAdmin):
     list_display = ("profissional","dia_semana",)
 
-# AGENDAMENTO
 @admin.register(AgendamentoSala)
 class AgendamentoSalaAdmin(admin.ModelAdmin):
     list_display = ("profissional","sala","horario_inicio","horario_final",)
