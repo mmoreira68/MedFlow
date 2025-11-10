@@ -28,7 +28,7 @@
           {% for andar in andares %}
             <div class="card mb-3">
               <div class="card-header d-flex justify-content-between align-items-center">
-                <div><strong>Andar {{ andar.nome }}</strong></div>
+                <div><strong>{{ andar.nome }}</strong></div>
                 <div class="d-flex gap-2">
                   <a href="{% url 'editar_andar' andar.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
                   <a href="{% url 'excluir_andar' andar.id %}" class="btn btn-sm btn-outline-danger">Excluir</a>
