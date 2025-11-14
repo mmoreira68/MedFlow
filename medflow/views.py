@@ -106,12 +106,14 @@ def dashboard(request):
     profissionais = Profissional.objects.select_related('especialidade').all()
     funcionalidades = Funcionalidade.objects.all()
     equipamentos = Equipamento.objects.all()
+    especialidades =  Especialidade.objects.order_by('nome')
 
     return render(request, 'dashboard.html', {
         'andares': andares,
         'profissionais': profissionais,
         'funcionalidades': funcionalidades,
         'equipamentos': equipamentos,
+        'especialidades': especialidades
     })
 
 # =============================================================================

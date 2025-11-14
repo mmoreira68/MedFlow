@@ -8,8 +8,8 @@
       <a href="{% url 'criar_andar' %}" class="btn btn-success">Adicionar Andar</a>
       <a href="{% url 'criar_funcionalidade' %}" class="btn btn-info">Adicionar Funcionalidade</a>
       <a href="{% url 'criar_equipamento' %}" class="btn btn-warning">Adicionar Equipamento</a>
-      <a href="{% url 'criar_profissional' %}" class="btn btn-secondary">Adicionar Profissional</a>
       <a href="{% url 'criar_especialidade' %}" class="btn btn-primary">Adicionar Especialidade</a>
+      <a href="{% url 'criar_profissional' %}" class="btn btn-secondary">Adicionar Profissional</a>      
     </div>
   </div>
 
@@ -107,6 +107,52 @@
           {% empty %}
             <div class="alert alert-info">Nenhum Equipamento cadastrado.</div>
           {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Especialidades -->
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingEspecialidades">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseEspecialidades" aria-expanded="false" aria-controls="collapseEspecialidades">
+          Especialidades
+        </button>
+      </h2>
+      <div id="collapseEspecialidades" class="accordion-collapse collapse"
+           aria-labelledby="headingEspecialidades" data-bs-parent="#dashboardAccordion">
+        <div class="accordion-body">
+          {# Preferencialmente, renderiza a lista de 'especialidades' vinda do contexto #}
+          {% if especialidades %}
+            {% for esp in especialidades %}
+              <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                <span>{{ esp.nome }}</span>
+                <div class="d-flex gap-2">
+                  <a href="{% url 'editar_especialidade' esp.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                  <a href="{% url 'excluir_especialidade' esp.id %}" class="btn btn-sm btn-outline-danger">Excluir</a>
+                </div>
+              </div>
+            {% empty %}
+              <div class="alert alert-info">Nenhuma especialidade cadastrada.</div>
+            {% endfor %}
+
+          {# Fallback: se não houver 'especialidades' no contexto, mostra a relação distinta a partir de 'profissionais' #}
+          {% elif profissionais %}
+            {% with profs_ordenados=profissionais|dictsort:"especialidade" %}
+              {% for p in profs_ordenados %}
+                {% ifchanged p.especialidade %}
+                  <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                    <span>{{ p.especialidade }}</span>
+                    <div class="d-flex gap-2">
+                      <!-- Sem URLs de edição/remoção pois não temos o ID da especialidade -->
+                    </div>
+                  </div>
+                {% endifchanged %}
+              {% endfor %}
+            {% endwith %}
+          {% else %}
+            <div class="alert alert-info">Nenhuma especialidade encontrada.</div>
+          {% endif %}
         </div>
       </div>
     </div>

@@ -79,8 +79,17 @@
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
           {% if user.is_authenticated %}
-            <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Administração</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'visualizar_agendamentos' %}">Agendamentos</a></li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="https://app.powerbi.com/view?r=eyJrIjoiMTkwNGMwOGQtOGNkNC00ZWQ1LThjY2EtMjczNTE3Y2E2NWQwIiwidCI6IjdlOTNlMjg2LWIyOWEtNDQ1NC1hNDFhLWU4NDE5ZWM5ZGViNSJ9"
+                target="_blank"
+                rel="noopener"
+                title="Abrir painel estatístico no Power BI"
+              >Painel Estatístico</a>
+            </li>
             <li class="nav-item"><a class="nav-link text-strong-yellow" href="{% url 'logout' %}">Sair</a></li>
           {% else %}
             <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Entrar</a></li>
@@ -110,7 +119,7 @@
   <!-- Footer fixo ao final da viewport -->
   <footer class="site-footer">
     <div class="container">
-      <p class="mb-0">&copy; 2025 MedFlow - Gestão de Salas Hospitalares</p>
+      <p class="mb-0">&copy; 2025 MedFlow 2.0 - Gestão de Salas Hospitalares</p>
     </div>
   </footer>
 
