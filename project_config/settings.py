@@ -37,7 +37,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # =============================================================================
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-key-do-not-use-in-production")
-DEBUG = env_bool("DEBUG", False)
+DEBUG = env_bool("DEBUG", True)
 
 # Ex.: "seuapp.onrender.com,localhost,127.0.0.1"
 ALLOWED_HOSTS = env_csv("ALLOWED_HOSTS", "*")
