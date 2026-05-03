@@ -2,191 +2,290 @@
 
 {% block content %}
 <div class="container py-3">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0">Painel de Gestão</h2>
-    <div class="btn-group" role="group" aria-label="Ações rápidas">
-      <a href="{% url 'criar_andar' %}" class="btn btn-success">Adicionar Andar</a>
-      <a href="{% url 'criar_funcionalidade' %}" class="btn btn-info">Adicionar Funcionalidade</a>
-      <a href="{% url 'criar_equipamento' %}" class="btn btn-warning">Adicionar Equipamento</a>
-      <a href="{% url 'criar_especialidade' %}" class="btn btn-primary">Adicionar Especialidade</a>
-      <a href="{% url 'criar_profissional' %}" class="btn btn-secondary">Adicionar Profissional</a>      
-    </div>
-  </div>
+  <h2 class="mb-4">Painel de Gestão</h2>
 
-  <div class="accordion" id="dashboardAccordion">
-    <!-- Andares e Salas -->
-    <div class="accordion-item">
-      <h2 class="accordion-header" id="headingAndares">
-        <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                data-bs-target="#collapseAndares" aria-expanded="true" aria-controls="collapseAndares">
-          Andares e Salas
-        </button>
-      </h2>
-      <div id="collapseAndares" class="accordion-collapse collapse show" aria-labelledby="headingAndares"
-           data-bs-parent="#dashboardAccordion">
-        <div class="accordion-body">
-          {% for andar in andares %}
-            <div class="card mb-3">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <div><strong>{{ andar.nome }}</strong></div>
-                <div class="d-flex gap-2">
-                  <a href="{% url 'editar_andar' andar.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
-                  <a href="{% url 'excluir_andar' andar.id %}" class="btn btn-sm btn-outline-danger">Excluir</a>
-                  <a href="{% url 'criar_sala' andar.id %}" class="btn btn-sm btn-outline-success">Adicionar Sala</a>
-                </div>
-              </div>
-              <ul class="list-group list-group-flush">
-                {% for sala in andar.sala_set.all %}
-                  <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                      <strong>{{ sala.nome }}</strong> ({{ sala.funcao }}) - Sala {{ sala.numero }}
-                    </div>
-                    <div class="d-flex gap-2">
-                      <a href="{% url 'agendar_sala' sala.id %}" class="btn btn-sm btn-primary">Agendar</a>
-                      <a href="{% url 'editar_sala' sala.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
-                      <a href="{% url 'excluir_sala' sala.id %}" class="btn btn-sm btn-outline-danger">Excluir</a>
-                    </div>
-                  </li>
-                {% empty %}
-                  <li class="list-group-item">Nenhuma sala cadastrada.</li>
-                {% endfor %}
-              </ul>
-            </div>
-          {% empty %}
-            <div class="alert alert-info">Nenhum andar cadastrado.</div>
-          {% endfor %}
-        </div>
+  <!-- Tabs Navigation -->
+  <div class="tabs-container">
+    <div class="tabs-header" role="tablist">
+      <button class="tab-button active" role="tab" data-tab="andares"><i data-lucide="building-2" width="16" height="16"></i> Andares e Salas</button>
+      <button class="tab-button" role="tab" data-tab="funcionalidades"><i data-lucide="sliders" width="16" height="16"></i> Funcionalidades</button>
+      <button class="tab-button" role="tab" data-tab="equipamentos"><i data-lucide="wrench" width="16" height="16"></i> Equipamentos</button>
+      <button class="tab-button" role="tab" data-tab="especialidades"><i data-lucide="hospital" width="16" height="16"></i> Especialidades</button>
+      <button class="tab-button" role="tab" data-tab="profissionais"><i data-lucide="user-circle" width="16" height="16"></i> Profissionais</button>
+    </div>
+
+    <!-- Andares e Salas Tab -->
+    <div class="tab-content active" id="andares">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Andares e Salas</h3>
+        <a href="{% url 'criar_andar' %}" class="btn btn-success btn-sm"><i data-lucide="plus" width="16" height="16"></i> Adicionar Andar</a>
       </div>
-    </div>
-
-    <!-- Funcionalidades -->
-    <div class="accordion-item">
-      <h2 class="accordion-header" id="headingFuncionalidades">
-        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                data-bs-target="#collapseFuncionalidades" aria-expanded="false" aria-controls="collapseFuncionalidades">
-          Funcionalidades
-        </button>
-      </h2>
-      <div id="collapseFuncionalidades" class="accordion-collapse collapse" aria-labelledby="headingFuncionalidades"
-           data-bs-parent="#dashboardAccordion">
-        <div class="accordion-body">
-          {% for funcao in funcionalidades %}
-            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
-              <span>{{ funcao.nome }}</span>
-              <div class="d-flex gap-2">
-                <a href="{% url 'editar_funcionalidade' funcao.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
-                <a href="{% url 'excluir_funcionalidade' funcao.id %}" class="btn btn-sm btn-outline-danger">Excluir</a>
+      
+      <!-- Accordion de Andares -->
+      <div class="andares-accordion">
+        {% for andar in andares %}
+          <div class="accordion-item mb-2">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button" data-andar-id="{{ andar.id }}">
+                <strong>{{ andar.nome }}</strong>
+              </button>
+            </h2>
+            <div class="accordion-collapse collapse" data-andar-id="{{ andar.id }}">
+              <div class="accordion-body">
+                <div class="d-flex gap-2 mb-3">
+                  <a href="{% url 'editar_andar' andar.id %}" class="btn btn-sm btn-outline-primary"><i data-lucide="edit" width="16" height="16"></i> Editar</a>
+                  <a href="{% url 'excluir_andar' andar.id %}" class="btn btn-sm btn-outline-danger"><i data-lucide="trash-2" width="16" height="16"></i> Excluir</a>
+                  <a href="{% url 'criar_sala' andar.id %}" class="btn btn-sm btn-outline-success"><i data-lucide="plus" width="16" height="16"></i> Sala</a>
+                </div>
+                
+                <ul class="list-group list-group-flush">
+                  {% for sala in andar.sala_set.all %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                      <div>
+                        <strong>{{ sala.nome }}</strong> ({{ sala.funcao }}) - Sala {{ sala.numero }}
+                      </div>
+                      <div class="d-flex gap-2">
+                        <a href="{% url 'agendar_sala' sala.id %}" class="btn btn-sm btn-primary"><i data-lucide="calendar" width="16" height="16"></i> Agendar</a>
+                        <a href="{% url 'editar_sala' sala.id %}" class="btn btn-sm btn-outline-primary"><i data-lucide="edit" width="16" height="16"></i> Editar</a>
+                        <a href="{% url 'excluir_sala' sala.id %}" class="btn btn-sm btn-outline-danger"><i data-lucide="trash-2" width="16" height="16"></i> Excluir</a>
+                      </div>
+                    </li>
+                  {% empty %}
+                    <li class="list-group-item">Nenhuma sala cadastrada.</li>
+                  {% endfor %}
+                </ul>
               </div>
             </div>
-          {% empty %}
-            <div class="alert alert-info">Nenhuma funcionalidade cadastrada.</div>
-          {% endfor %}
-        </div>
+          </div>
+        {% empty %}
+          <div class="alert alert-info">Nenhum andar cadastrado.</div>
+        {% endfor %}
       </div>
     </div>
 
-    <!-- Equipamentos -->
-    <div class="accordion-item">
-      <h2 class="accordion-header" id="headingEquipamentos">
-        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                data-bs-target="#collapseEquipamentos" aria-expanded="false" aria-controls="collapseEquipamentos">
-          Equipamentos
-        </button>
-      </h2>
-      <div id="collapseEquipamentos" class="accordion-collapse collapse"
-           aria-labelledby="headingEquipamentos" data-bs-parent="#dashboardAccordion">
-        <div class="accordion-body">
-          {% for funcao in equipamentos %}
-            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
-              <span>{{ funcao.nome }}</span>
-              <div class="d-flex gap-2">
-                <a href="{% url 'editar_equipamento' funcao.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
-                <a href="{% url 'excluir_equipamento' funcao.id %}" class="btn btn-sm btn-outline-danger">Excluir</a>
-              </div>
+    <!-- Funcionalidades Tab -->
+    <div class="tab-content" id="funcionalidades">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Funcionalidades</h3>
+        <a href="{% url 'criar_funcionalidade' %}" class="btn btn-info btn-sm"><i data-lucide="plus" width="16" height="16"></i> Adicionar Funcionalidade</a>
+      </div>
+      {% for funcao in funcionalidades %}
+        <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+          <span class="fw-500">{{ funcao.nome }}</span>
+          <div class="d-flex gap-2">
+            <a href="{% url 'editar_funcionalidade' funcao.id %}" class="btn btn-sm btn-outline-primary"><i data-lucide="edit" width="16" height="16"></i> Editar</a>
+            <a href="{% url 'excluir_funcionalidade' funcao.id %}" class="btn btn-sm btn-outline-danger"><i data-lucide="trash-2" width="16" height="16"></i> Excluir</a>
+          </div>
+        </div>
+      {% empty %}
+        <div class="alert alert-info">Nenhuma funcionalidade cadastrada.</div>
+      {% endfor %}
+    </div>
+
+    <!-- Equipamentos Tab -->
+    <div class="tab-content" id="equipamentos">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Equipamentos</h3>
+        <a href="{% url 'criar_equipamento' %}" class="btn btn-warning btn-sm"><i data-lucide="plus" width="16" height="16"></i> Adicionar Equipamento</a>
+      </div>
+      {% for funcao in equipamentos %}
+        <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+          <span class="fw-500">{{ funcao.nome }}</span>
+          <div class="d-flex gap-2">
+            <a href="{% url 'editar_equipamento' funcao.id %}" class="btn btn-sm btn-outline-primary"><i data-lucide="edit" width="16" height="16"></i> Editar</a>
+            <a href="{% url 'excluir_equipamento' funcao.id %}" class="btn btn-sm btn-outline-danger"><i data-lucide="trash-2" width="16" height="16"></i> Excluir</a>
+          </div>
+        </div>
+      {% empty %}
+        <div class="alert alert-info">Nenhum Equipamento cadastrado.</div>
+      {% endfor %}
+    </div>
+
+    <!-- Especialidades Tab -->
+    <div class="tab-content" id="especialidades">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Especialidades</h3>
+        <a href="{% url 'criar_especialidade' %}" class="btn btn-primary btn-sm"><i data-lucide="plus" width="16" height="16"></i> Adicionar Especialidade</a>
+      </div>
+      {% if especialidades %}
+        {% for esp in especialidades %}
+          <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+            <span class="fw-500">{{ esp.nome }}</span>
+            <div class="d-flex gap-2">
+              <a href="{% url 'editar_especialidade' esp.id %}" class="btn btn-sm btn-outline-primary"><i data-lucide="edit" width="16" height="16"></i> Editar</a>
+              <a href="{% url 'excluir_especialidade' esp.id %}" class="btn btn-sm btn-outline-danger"><i data-lucide="trash-2" width="16" height="16"></i> Excluir</a>
             </div>
-          {% empty %}
-            <div class="alert alert-info">Nenhum Equipamento cadastrado.</div>
+          </div>
+        {% empty %}
+          <div class="alert alert-info">Nenhuma especialidade cadastrada.</div>
+        {% endfor %}
+      {% elif profissionais %}
+        {% with profs_ordenados=profissionais|dictsort:"especialidade" %}
+          {% for p in profs_ordenados %}
+            {% ifchanged p.especialidade %}
+              <div class="border-bottom py-3">
+                <span class="fw-500">{{ p.especialidade }}</span>
+              </div>
+            {% endifchanged %}
           {% endfor %}
-        </div>
-      </div>
+        {% endwith %}
+      {% else %}
+        <div class="alert alert-info">Nenhuma especialidade encontrada.</div>
+      {% endif %}
     </div>
 
-    <!-- Especialidades -->
-    <div class="accordion-item">
-      <h2 class="accordion-header" id="headingEspecialidades">
-        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                data-bs-target="#collapseEspecialidades" aria-expanded="false" aria-controls="collapseEspecialidades">
-          Especialidades
-        </button>
-      </h2>
-      <div id="collapseEspecialidades" class="accordion-collapse collapse"
-           aria-labelledby="headingEspecialidades" data-bs-parent="#dashboardAccordion">
-        <div class="accordion-body">
-          {# Preferencialmente, renderiza a lista de 'especialidades' vinda do contexto #}
-          {% if especialidades %}
-            {% for esp in especialidades %}
-              <div class="d-flex justify-content-between align-items-center border-bottom py-2">
-                <span>{{ esp.nome }}</span>
-                <div class="d-flex gap-2">
-                  <a href="{% url 'editar_especialidade' esp.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
-                  <a href="{% url 'excluir_especialidade' esp.id %}" class="btn btn-sm btn-outline-danger">Excluir</a>
-                </div>
-              </div>
-            {% empty %}
-              <div class="alert alert-info">Nenhuma especialidade cadastrada.</div>
-            {% endfor %}
-
-          {# Fallback: se não houver 'especialidades' no contexto, mostra a relação distinta a partir de 'profissionais' #}
-          {% elif profissionais %}
-            {% with profs_ordenados=profissionais|dictsort:"especialidade" %}
-              {% for p in profs_ordenados %}
-                {% ifchanged p.especialidade %}
-                  <div class="d-flex justify-content-between align-items-center border-bottom py-2">
-                    <span>{{ p.especialidade }}</span>
-                    <div class="d-flex gap-2">
-                      <!-- Sem URLs de edição/remoção pois não temos o ID da especialidade -->
-                    </div>
-                  </div>
-                {% endifchanged %}
-              {% endfor %}
-            {% endwith %}
-          {% else %}
-            <div class="alert alert-info">Nenhuma especialidade encontrada.</div>
-          {% endif %}
-        </div>
+    <!-- Profissionais Tab -->
+    <div class="tab-content" id="profissionais">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Profissionais</h3>
+        <a href="{% url 'criar_profissional' %}" class="btn btn-secondary btn-sm"><i data-lucide="plus" width="16" height="16"></i> Adicionar Profissional</a>
       </div>
-    </div>
-
-    <!-- Profissionais -->
-    <div class="accordion-item">
-      <h2 class="accordion-header" id="headingProfissionais">
-        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                data-bs-target="#collapseProfissionais" aria-expanded="false" aria-controls="collapseProfissionais">
-          Profissionais
-        </button>
-      </h2>
-      <div id="collapseProfissionais" class="accordion-collapse collapse" aria-labelledby="headingProfissionais"
-           data-bs-parent="#dashboardAccordion">
-        <div class="accordion-body">
-          {% for profissional in profissionais %}
-            <div class="card mb-2">
-              <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                  <strong>{{ profissional.nome }}</strong> - {{ profissional.especialidade }}
-                </div>
-                <div class="d-flex gap-2">
-                  <a href="{% url 'editar_profissional' profissional.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
-                  <a href="{% url 'excluir_profissional' profissional.id %}" class="btn btn-sm btn-outline-danger">Excluir</a>
-                  <a href="{% url 'configurar_profissional' %}?prof={{ profissional.id }}" class="btn btn-sm btn-warning">Configurar</a>
-                </div>
-              </div>
+      {% for profissional in profissionais %}
+        <div class="card mb-3">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <strong>{{ profissional.nome }}</strong> - {{ profissional.especialidade }}
             </div>
-          {% empty %}
-            <div class="alert alert-info">Nenhum profissional cadastrado.</div>
-          {% endfor %}
+            <div class="d-flex gap-2">
+              <a href="{% url 'editar_profissional' profissional.id %}" class="btn btn-sm btn-outline-primary"><i data-lucide="edit" width="16" height="16"></i> Editar</a>
+              <a href="{% url 'excluir_profissional' profissional.id %}" class="btn btn-sm btn-outline-danger"><i data-lucide="trash-2" width="16" height="16"></i> Excluir</a>
+              <a href="{% url 'configurar_profissional' %}?prof={{ profissional.id }}" class="btn btn-sm btn-outline-warning"><i data-lucide="settings" width="16" height="16"></i> Configurar</a>
+            </div>
+          </div>
         </div>
-      </div>
+      {% empty %}
+        <div class="alert alert-info">Nenhum profissional cadastrado.</div>
+      {% endfor %}
     </div>
   </div>
 </div>
+
+<style>
+  .tabs-container {
+    margin-top: 1rem;
+  }
+
+  .tabs-header {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 2px solid #e0e0e0;
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+  }
+
+  .tab-button {
+    padding: 0.75rem 1rem;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #666;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .tab-button:hover {
+    color: #1e40af;
+    background-color: #f5f5f5;
+  }
+
+  .tab-button.active {
+    color: #1e40af;
+    border-bottom-color: #1e40af;
+    background-color: #f0f7ff;
+  }
+
+  .tab-content {
+    display: none;
+    animation: fadeIn 0.15s ease;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .fw-500 {
+    font-weight: 500;
+  }
+
+  /* HugeIcons styling */
+  .icon-plus,
+  .icon-edit-02,
+  .icon-trash-02,
+  .icon-calendar-02,
+  .icon-settings,
+  .icon-building-02,
+  .icon-settings-02,
+  .icon-tool-02,
+  .icon-hospital,
+  .icon-user-circle {
+    width: 1.1rem;
+    height: 1.1rem;
+    display: inline-block;
+    margin-right: 0.3rem;
+  }
+</style>
+
+<script>
+  // Initialize Lucide Icons
+  lucide.createIcons();
+
+  // Get tab from URL parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const selectedTab = urlParams.get('tab') || 'andares';
+
+  // Activate tab from URL on page load
+  const initialButton = document.querySelector(`[data-tab="${selectedTab}"]`);
+  if (initialButton) {
+    document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    initialButton.classList.add('active');
+    document.getElementById(selectedTab).classList.add('active');
+    lucide.createIcons();
+  }
+
+  // Tab button click handler
+  document.querySelectorAll('.tab-button').forEach(button => {
+    button.addEventListener('click', () => {
+      const tabName = button.getAttribute('data-tab');
+      
+      // Update URL
+      const newUrl = `${window.location.pathname}?tab=${tabName}`;
+      window.history.pushState({ tab: tabName }, '', newUrl);
+      
+      // Remove active from all buttons and contents
+      document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      // Add active to clicked button and corresponding content
+      button.classList.add('active');
+      document.getElementById(tabName).classList.add('active');
+      
+      // Re-render icons after tabs change
+      lucide.createIcons();
+    });
+  });
+
+  // Handle browser back/forward
+  window.addEventListener('popstate', (e) => {
+    const tabName = e.state?.tab || 'andares';
+    const button = document.querySelector(`[data-tab="${tabName}"]`);
+    if (button) {
+      document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      button.classList.add('active');
+      document.getElementById(tabName).classList.add('active');
+      lucide.createIcons();
+    }
+  });
+</script>
 {% endblock %}

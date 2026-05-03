@@ -37,7 +37,7 @@ funcionalidades = [Funcionalidade.objects.create(nome=nome) for nome in especial
 # Criar andares e salas
 salas = []
 for n in range(1, 4):
-    andar = Andar.objects.create(numero=n)
+    andar = Andar.objects.create(nome=f"Andar {n}")
     for i in range(1, 4):
         func = random.choice(funcionalidades)
         sala = Sala.objects.create(

@@ -3,9 +3,8 @@ Django settings for project_config
 Pronto para deploy no Render: SQLite em disco + WhiteNoise.
 """
 
-from pathlib import Path
 import os
-
+from pathlib import Path
 
 # =============================================================================
 # Helpers
@@ -53,8 +52,8 @@ if _sp:
     if len(parts) == 2:
         SECURE_PROXY_SSL_HEADER = (parts[0], parts[1])
 
-SESSION_COOKIE_SECURE = env_bool("SESSION_COOKIE_SECURE", not DEBUG)
-CSRF_COOKIE_SECURE = env_bool("CSRF_COOKIE_SECURE", not DEBUG)
+SESSION_COOKIE_SECURE = env_bool("SESSION_COOKIE_SECURE", False)
+CSRF_COOKIE_SECURE = env_bool("CSRF_COOKIE_SECURE", False)
 
 
 # =============================================================================
@@ -68,6 +67,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
+    "drf_spectacular",
     "medflow.apps.MedflowConfig",
 ]
 
@@ -179,7 +180,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 APPEND_SLASH = True
 
 if not DEBUG:
-    SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", True)
+    SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", False)
     SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "0")) or 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", True)
     SECURE_HSTS_PRELOAD = env_bool("SECURE_HSTS_PRELOAD", True)
@@ -198,3 +199,26 @@ LOGGING = {
 if DEBUG:
     SECURE_SSL_REDIRECT = False
     SECURE_PROXY_SSL_HEADER = None
+    CSRF_COOKIE_SECURE  = False
+    SESSION_COOKIE_SECURE = False
+
+# =============================================================================
+# Django REST Framework
+# =============================================================================
+
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "100/hour",
+    },
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "MedFlow API",
+    "DESCRIPTION": "API pública para consulta de agendamentos",
+    "VERSION": "1.0.0",
+    "SERVE_PERMISSIONS": ["rest_framework.permissions.AllowAny"],
+}

@@ -47,9 +47,9 @@
             {% endif %}
           </div>
           <button type="button" class="btn btn-outline-primary" hx-get="{% url 'andar_quick_add' %}"
-            hx-target="#quickAddBody" hx-swap="innerHTML" data-bs-toggle="modal" data-bs-target="#quickAddModal"
-            onclick="document.getElementById('quickAddTitle').innerText='Novo Andar'">
-            <i class="bi bi-plus-circle me-1"></i> Andar
+            hx-target="#quickAddBody" hx-swap="innerHTML"
+            onclick="document.getElementById('quickAddModal').classList.add('show'); document.getElementById('quickAddTitle').innerText='Novo Andar'">
+            <i data-lucide="plus" width="16" height="16"></i> Andar
           </button>
         </div>
         {% endif %}
@@ -64,9 +64,9 @@
             {% endif %}
           </div>
           <button type="button" class="btn btn-outline-primary" hx-get="{% url 'func_quick_add' %}"
-            hx-target="#quickAddBody" hx-swap="innerHTML" data-bs-toggle="modal" data-bs-target="#quickAddModal"
-            onclick="document.getElementById('quickAddTitle').innerText='Nova Funcionalidade'">
-            <i class="bi bi-plus-circle me-1"></i> Funcionalidade
+            hx-target="#quickAddBody" hx-swap="innerHTML"
+            onclick="document.getElementById('quickAddModal').classList.add('show'); document.getElementById('quickAddTitle').innerText='Nova Funcionalidade'">
+            <i data-lucide="plus" width="16" height="16"></i> Funcionalidade
           </button>
         </div>
         {% endif %}
@@ -82,9 +82,9 @@
             {% endif %}
           </div>
           <button type="button" class="btn btn-outline-primary" hx-get="{% url 'especialidade_quick_add' %}"
-            hx-target="#quickAddBody" hx-swap="innerHTML" data-bs-toggle="modal" data-bs-target="#quickAddModal"
-            onclick="document.getElementById('quickAddTitle').innerText='Nova Especialidade'">
-            <i class="bi bi-plus-circle me-1"></i> Especialidade
+            hx-target="#quickAddBody" hx-swap="innerHTML"
+            onclick="document.getElementById('quickAddModal').classList.add('show'); document.getElementById('quickAddTitle').innerText='Nova Especialidade'">
+            <i data-lucide="plus" width="16" height="16"></i> Especialidade
           </button>
         </div>
         {% endif %}
@@ -103,14 +103,14 @@
         <div class="d-flex justify-content-between">
           <a href="{{ cancel_url|default:request.META.HTTP_REFERER|default_if_none:DASHBOARD_URL|default:DASHBOARD_URL }}"
             class="btn btn-secondary">
-            <i class="bi bi-x-circle me-1"></i> Cancelar
+            ✕ Cancelar
           </a>
           <button type="submit" class="btn btn-success">
-            <i class="bi bi-check2-circle me-1"></i> Salvar
+            ✓ Salvar
           </button>
         </div>
 
-        {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+        {% if next_url %}<input type="hidden" name="next" class="form-control" value="{{ next_url }}">{% endif %}
       </form>
     </div>
   </div>
@@ -141,16 +141,16 @@
               <td class="text-end">
                 {% if r.extra %}
                   {% for act in r.extra %}
-                    <a href="{{ act.url }}" class="btn btn-sm btn-outline-secondary me-1" title="{{ act.title }}" data-bs-toggle="tooltip">
-                      <i class="bi {{ act.icon }}"></i>
+                    <a href="{{ act.url }}" class="btn btn-sm btn-outline-secondary me-1" title="{{ act.title }}">
+                      •
                     </a>
                   {% endfor %}
                 {% endif %}
-                <a href="{{ r.edit }}" class="btn btn-sm btn-outline-primary me-1" title="Editar" data-bs-toggle="tooltip">
-                  <i class="bi bi-pencil-square"></i>
+                <a href="{{ r.edit }}" class="btn btn-sm btn-outline-primary me-1" title="Editar">
+                  ✏️
                 </a>
-                <a href="{{ r.delete }}" class="btn btn-sm btn-outline-danger" title="Excluir" data-bs-toggle="tooltip">
-                  <i class="bi bi-trash3"></i>
+                <a href="{{ r.delete }}" class="btn btn-sm btn-outline-danger" title="Excluir">
+                  🗑️
                 </a>
               </td>
               {% endif %}
@@ -168,12 +168,12 @@
 
 </div>
 
-<div class="modal fade" id="quickAddModal" tabindex="-1" aria-hidden="true">
+<div class="modal" id="quickAddModal">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="quickAddTitle">Adicionar</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close" onclick="document.getElementById('quickAddModal').classList.remove('show')"></button>
       </div>
       <div class="modal-body" id="quickAddBody"></div>
     </div>

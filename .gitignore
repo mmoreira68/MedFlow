@@ -6,3 +6,6 @@ populate_data.py
 venv/
 # Static collecion
 staticfiles/
+.agents
+.claude
+skills-lock.json

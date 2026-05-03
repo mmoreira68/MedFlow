@@ -1,6 +1,6 @@
 import pytest
 from django.db import IntegrityError
-from medflow.models import Andar, Equipamento, Profissional, Sala, AgendamentoSala
+from medflow.models import Andar, Equipamento, Profissional, Sala, AgendamentoSala, Especialidade
 
 @pytest.mark.django_db
 def test_andar_nome_normalizado_unico():
@@ -16,9 +16,19 @@ def test_equipamento_nome_normalizado_unico():
 
 @pytest.mark.django_db
 def test_profissional_crm_unico():
-    Profissional.objects.create(nome="Med 1", especialidade="Cardio", crm="ABC123")
+    esp = Especialidade.objects.create(nome="Cardiologia")
+
+    Profissional.objects.create(
+        nome="Med 1",
+        especialidade=esp,
+        crm="ABC123"
+    )
     with pytest.raises(IntegrityError):
-        Profissional.objects.create(nome="Med 2", especialidade="Cardio", crm="ABC123")
+        Profissional.objects.create(
+            nome="Med 2",
+            especialidade=esp,
+            crm="ABC123"
+        )
 
 @pytest.mark.django_db
 def test_agendamento_calcula_horario_final(agendamento):

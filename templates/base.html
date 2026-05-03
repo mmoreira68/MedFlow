@@ -1,64 +1,78 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="pt-br" class="h-100">
+<html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MedFlow 2.0 - Gestão Hospitalar</title>
 
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <!-- Bootstrap Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-
-  <style>
-    /* Layout básico */
-    html, body { height: 100%; }
-    body {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;           /* ocupa a viewport toda */
-      background-color: #f8f9fa;
-      overflow: hidden;            /* impede scroll na página; o scroll fica no <main> */
-    }
-
-    /* Navbar */
-    .navbar { background-color: #0d6efd; }
-    .navbar-brand, .nav-link, .navbar-text { color: #ffffff !important; }
-    .text-strong-yellow { color: #ffc107 !important; }
-
-    /* Área central que deve rolar entre header e footer */
-    main#app-main {
-      flex: 1 1 auto;              /* ocupa o espaço disponível */
-      min-height: 0;               /* importante para o overflow funcionar em flex */
-      overflow-y: auto;            /* rolagem fica aqui */
-      padding-top: 1rem;
-      padding-bottom: 1rem;
-    }
-
-    /* Footer colado embaixo sempre */
-    footer.site-footer {
-      margin-top: 0;
-      padding: 16px 0;
-      background-color: #0d6efd;
-      color: #fff;
-      text-align: center;
-      flex-shrink: 0;              /* não encolhe */
-    }
-  </style>
-
+  <!-- Admin Theme CSS -->
+  <link rel="stylesheet" href="{% static 'admin-theme.css' %}">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
   <script src="https://unpkg.com/htmx.org@2.0.3"></script>
 
   <script>
+    // Initialize Lucide Icons when DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    });
+
     // Fecha modal (HTMX)
     document.body?.addEventListener('closeModal', function () {
-      const el = document.getElementById('quickAddModal');
-      if (!el) return;
-      const inst = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
-      inst.hide();
+      const modal = document.getElementById('quickAddModal');
+      if (!modal) return;
+      modal.classList.remove('show');
       const body = document.getElementById('quickAddBody');
       if (body) body.innerHTML = '';
+    });
+
+    // Accordion behavior
+    document.addEventListener('DOMContentLoaded', () => {
+      const accordionButtons = document.querySelectorAll('.accordion-button');
+      accordionButtons.forEach((button) => {
+        button.addEventListener('click', (e) => {
+          e.preventDefault();
+          
+          const parent = button.closest('.accordion-item');
+          const collapse = parent?.querySelector('.accordion-collapse');
+          if (!collapse) return;
+          
+          const isOpen = collapse.classList.contains('show');
+          
+          // Close siblings
+          const accordion = parent?.closest('.accordion');
+          accordion?.querySelectorAll('.accordion-collapse').forEach(col => {
+            if (col !== collapse && col.classList.contains('show')) {
+              col.classList.remove('show');
+              col.previousElementSibling?.querySelector('.accordion-button')?.setAttribute('aria-expanded', 'false');
+            }
+          });
+          
+          // Toggle current
+          if (isOpen) {
+            collapse.classList.remove('show');
+            button.setAttribute('aria-expanded', 'false');
+          } else {
+            collapse.classList.add('show');
+            button.setAttribute('aria-expanded', 'true');
+          }
+        });
+      });
+
+      // Close modal clicking outside
+      const modal = document.getElementById('quickAddModal');
+      if (modal) {
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) {
+            modal.classList.remove('show');
+          }
+        });
+      }
     });
   </script>
 </head>
@@ -122,16 +136,5 @@
       <p class="mb-0">&copy; 2025 MedFlow 2.0 - Gestão de Salas Hospitalares</p>
     </div>
   </footer>
-
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-  <!-- Ativa tooltips (títulos/aria-title dos botões) -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-      tooltipTriggerList.forEach(el => new bootstrap.Tooltip(el));
-    });
-  </script>
 </body>
 </html>

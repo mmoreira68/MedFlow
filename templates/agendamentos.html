@@ -18,8 +18,8 @@
         </div>
     </div>
 
-    <form method="get" class="row g-3 align-items-center mb-4">
-        <div class="col-auto">
+    <form method="get" class="d-flex flex-wrap gap-3 align-items-end mb-4">
+        <div>
             <label for="profissional" class="form-label">Profissional</label>
             <select name="profissional" id="profissional" class="form-select">
                 <option value="">Todos</option>
@@ -28,7 +28,7 @@
                 {% endfor %}
             </select>
         </div>
-        <div class="col-auto">
+        <div>
             <label for="sala" class="form-label">Sala</label>
             <select name="sala" id="sala" class="form-select">
                 <option value="">Todas</option>
@@ -37,9 +37,7 @@
                 {% endfor %}
             </select>
         </div>
-        <div class="col-auto align-self-end">
-            <button type="submit" class="btn btn-primary">Filtrar</button>
-        </div>
+        <button type="submit" class="btn btn-primary">Filtrar</button>
     </form>
 
     {% if agendamentos %}

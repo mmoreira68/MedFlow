@@ -2,6 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from datetime import datetime, timedelta
 import unicodedata
+import requests
 
 from .models import (
     AgendamentoSala, Andar, Equipamento, Especialidade, Profissional,
@@ -35,6 +36,33 @@ class AgendamentoSalaForm(forms.ModelForm):
             'horario_inicio': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
         }
 
+    def verificar_feriado(self, data):
+        """
+        Consulta a BrasilAPI para verificar se a data é feriado nacional
+        """
+        ano = data.year
+        url = f"https://brasilapi.com.br/api/feriados/v1/{ano}"
+
+        try:
+            response = requests.get(url, timeout=5)
+            response.raise_for_status()
+            feriados = response.json()
+
+            data_formatada = data.strftime("%Y-%m-%d")
+
+            for feriado in feriados:
+                if feriado.get("date") == data_formatada:
+                    return feriado.get("name", "Feriado")
+
+            return None
+
+        except requests.RequestException:
+            # Caso a API falhe, você pode:
+            # 1. permitir continuar
+            # 2. bloquear
+            # 3. registrar log
+            return None
+
     def clean(self):
         cleaned_data = super().clean()
         profissional = cleaned_data.get('profissional')
@@ -45,6 +73,19 @@ class AgendamentoSalaForm(forms.ModelForm):
         if not all([profissional, sala, data_agendamento, horario_inicio]):
             return cleaned_data
 
+        # ----------------------------------
+        # VALIDAÇÃO DE FERIADO
+        # ----------------------------------
+        nome_feriado = self.verificar_feriado(data_agendamento)
+
+        if nome_feriado:
+            raise ValidationError(
+                f"Não é possível agendar nesta data pois é feriado: {nome_feriado}"
+            )
+
+        # ----------------------------------
+        # VALIDAÇÃO DOS PARÂMETROS
+        # ----------------------------------
         try:
             parametros = profissional.profissionalparametros
         except Profissional.profissionalparametros.RelatedObjectDoesNotExist:
@@ -72,6 +113,7 @@ class AndarForm(forms.ModelForm):
     class Meta:
         model = Andar
         fields = ['nome']
+        widgets = {"nome": forms.TextInput(attrs={"class": "form-control", "required": True})}
 
     def clean_nome(self):
         nome = (self.cleaned_data.get('nome') or '').strip()
@@ -97,6 +139,12 @@ class SalaForm(forms.ModelForm):
             'nome': 'Nome',
             'andar': 'Andar',
         }
+        widgets = {
+            "numero": forms.TextInput(attrs={"class": "form-control", "required": True}),
+            "nome": forms.TextInput(attrs={"class": "form-control", "required": True}),
+            "andar": forms.Select(attrs={"class": "form-control", "required": True}),
+            "funcao": forms.Select(attrs={"class": "form-control", "required": True}),
+        }
 
 class EspecialidadeForm(forms.ModelForm):
     class Meta:
@@ -116,6 +164,11 @@ class ProfissionalForm(forms.ModelForm):
             'nome': 'Nome',
             'especialidade': 'Especialidade',
             'crm': 'CRM',
+        }
+        widgets = {
+            "nome": forms.TextInput(attrs={"class": "form-control", "required": True}),
+            "especialidade": forms.Select(attrs={"class": "form-control", "required": True}),
+            "crm": forms.TextInput(attrs={"class": "form-control", "required": True}),
         }
 
     def clean_crm(self):
@@ -137,6 +190,7 @@ class FuncionalidadeForm(forms.ModelForm):
     class Meta:
         model = Funcionalidade
         fields = ['nome']
+        widgets = {"nome": forms.TextInput(attrs={"class": "form-control", "required": True})}
 
     def clean_nome(self):
         nome = (self.cleaned_data.get('nome') or '').strip()
@@ -156,6 +210,7 @@ class EquipamentoForm(forms.ModelForm):
     class Meta:
         model = Equipamento
         fields = ['nome']
+        widgets = {"nome": forms.TextInput(attrs={"class": "form-control", "required": True})}
 
     def clean_nome(self):
         nome = (self.cleaned_data.get('nome') or '').strip()
@@ -182,21 +237,21 @@ DIAS_SEMANA = [
 ]
 
 class ParametrosProfissionalForm(forms.Form):
-    profissional = forms.ModelChoiceField(queryset=Profissional.objects.all(), label="Profissional")
+    profissional = forms.ModelChoiceField(queryset=Profissional.objects.all(), label="Profissional", widget=forms.Select(attrs={"class": "form-control", "required": True}))
 
-    n_nc = forms.IntegerField(label="Nº atendimentos - Novo Caso")
-    t_nc = forms.IntegerField(label="Tempo (min) - Novo Caso")
-    n_ret = forms.IntegerField(label="Nº atendimentos - Retorno")
-    t_ret = forms.IntegerField(label="Tempo (min) - Retorno")
+    n_nc = forms.IntegerField(label="Nº atendimentos - Novo Caso", widget=forms.NumberInput(attrs={"class": "form-control", "required": True, "min": 0}))
+    t_nc = forms.IntegerField(label="Tempo (min) - Novo Caso", widget=forms.NumberInput(attrs={"class": "form-control", "required": True, "min": 0}))
+    n_ret = forms.IntegerField(label="Nº atendimentos - Retorno", widget=forms.NumberInput(attrs={"class": "form-control", "required": True, "min": 0}))
+    t_ret = forms.IntegerField(label="Tempo (min) - Retorno", widget=forms.NumberInput(attrs={"class": "form-control", "required": True, "min": 0}))
 
     dias_atendimento = forms.MultipleChoiceField(
         choices=DIAS_SEMANA,
-        widget=forms.CheckboxSelectMultiple,
-        label="Dias da semana"
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "form-check-input"}),
+        label="Dias da semana",
     )
 
     equipamentos = forms.ModelMultipleChoiceField(
         queryset=Equipamento.objects.all(),
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "form-check-input"}),
         label="Equipamentos necessários"
     )
