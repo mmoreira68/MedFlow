@@ -3,7 +3,7 @@
 {% block content %}
 {% url 'dashboard' as DASHBOARD_URL %}
 <div class="container mt-5">
-  <div class="card shadow-sm">
+  <div class="card">
     <div class="card-header bg-primary text-white">
       <h4 class="mb-0">{{ titulo }}</h4>
     </div>
@@ -116,7 +116,7 @@
   </div>
 
   {% if lista_headers and lista_rows is not None %}
-  <div class="card shadow-sm mt-4">
+  <div class="card mt-4">
     <div class="card-header bg-light">
       <div class="d-flex justify-content-between align-items-center">
         <h5 class="mb-0">{{ lista_titulo }}</h5>
@@ -147,7 +147,7 @@
                   {% endfor %}
                 {% endif %}
                 <a href="{{ r.edit }}" class="btn btn-sm btn-outline-primary me-1" title="Editar">
-                  ✏️
+                  <i data-lucide="edit" width="16" height="16"></i>
                 </a>
                 <a href="{{ r.delete }}" class="btn btn-sm btn-outline-danger" title="Excluir">
                   <i data-lucide="trash-2" width="16" height="16"></i>
