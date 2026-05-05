@@ -217,7 +217,7 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "MedFlow API",
+    "TITLE": "OdontoFlow API",
     "DESCRIPTION": "API pública para consulta de agendamentos",
     "VERSION": "1.0.0",
     "SERVE_PERMISSIONS": ["rest_framework.permissions.AllowAny"],
