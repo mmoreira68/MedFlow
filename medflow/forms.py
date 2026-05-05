@@ -32,6 +32,8 @@ class AgendamentoSalaForm(forms.ModelForm):
         model = AgendamentoSala
         fields = ['profissional', 'sala', 'data_agendamento', 'horario_inicio']
         widgets = {
+            'profissional': forms.Select(attrs={'class': 'form-control', 'required': True}),
+            'sala': forms.Select(attrs={'class': 'form-control', 'required': True}),
             'data_agendamento': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'horario_inicio': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
         }

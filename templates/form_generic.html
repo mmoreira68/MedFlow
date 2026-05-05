@@ -103,10 +103,10 @@
         <div class="d-flex justify-content-between">
           <a href="{{ cancel_url|default:request.META.HTTP_REFERER|default_if_none:DASHBOARD_URL|default:DASHBOARD_URL }}"
             class="btn btn-secondary">
-            ✕ Cancelar
+            <i data-lucide="x" width="16" height="16"></i> Cancelar
           </a>
           <button type="submit" class="btn btn-success">
-            ✓ Salvar
+            <i data-lucide="save" width="16" height="16"></i> Salvar
           </button>
         </div>
 
@@ -150,7 +150,7 @@
                   ✏️
                 </a>
                 <a href="{{ r.delete }}" class="btn btn-sm btn-outline-danger" title="Excluir">
-                  🗑️
+                  <i data-lucide="trash-2" width="16" height="16"></i>
                 </a>
               </td>
               {% endif %}

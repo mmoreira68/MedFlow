@@ -17,11 +17,11 @@
         <div class="d-flex justify-content-between">
           {# Use apenas next_url com fallback para DASHBOARD_URL. Nada de request.META. #}
           <a href="{{ next_url|default:DASHBOARD_URL }}" class="btn btn-secondary">
-            ✕ Cancelar
+            <i data-lucide="x" width="16" height="16"></i> Cancelar
           </a>
 
           <button type="submit" class="btn btn-danger">
-            🗑️ Confirmar
+            <i data-lucide="trash-2" width="16" height="16"></i> Confirmar
           </button>
         </div>
       </form>
