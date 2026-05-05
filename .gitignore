@@ -1,5 +1,7 @@
 .venv/
 __pycache__/
+.env
+.env.local
 .vscode/
 db.sqlite3
 populate_data.py
