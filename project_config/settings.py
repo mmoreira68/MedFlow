@@ -4,7 +4,9 @@ Pronto para deploy no Render: SQLite em disco + WhiteNoise.
 """
 
 import os
+import dj_database_url
 from pathlib import Path
+from dotenv import load_dotenv
 
 # =============================================================================
 # Helpers
@@ -29,6 +31,8 @@ def env_csv(name: str, default: str = "") -> list[str]:
 # =============================================================================
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(BASE_DIR / ".env")
 
 
 # =============================================================================
@@ -124,14 +128,23 @@ TEMPLATES = [
 # - Defina SQLITE_PATH=/var/data/db.sqlite3 no Render (Disk).
 # =============================================================================
 
-SQLITE_PATH = os.environ.get("SQLITE_PATH", str(BASE_DIR / "db.sqlite3"))
+_database_url = os.environ.get("DATABASE_URL")
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": SQLITE_PATH,
+if _database_url:
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=_database_url,
+            conn_max_age=600,
+        )
     }
-}
+else:
+    SQLITE_PATH = os.environ.get("SQLITE_PATH", str(BASE_DIR / "db.sqlite3"))
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": SQLITE_PATH,
+        }
+    }
 
 
 # =============================================================================
