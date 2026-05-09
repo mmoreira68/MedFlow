@@ -208,23 +208,29 @@ for prof, (_, esp_nome, *_rest) in zip(profissionais, PROFS):
 
 print("[OK]  equipamentos nos profissionais")
 
-# ── 8. Agendamentos — próximos 3 meses ────────────────────────────────────────
+# ── 8. Agendamentos — mês atual, máximo 150 ───────────────────────────────────
 DIA_MAP    = {0: "SEG", 1: "TER", 2: "QUA", 3: "QUI", 4: "SEX", 5: "SAB", 6: "DOM"}
 INICIO_DIA = time(8, 0)
 FIM_DIA    = time(18, 0)
+LIMITE     = 150
 
 # Exclui Triagem e Radiologia (não são salas de consulta/atendimento)
 salas_agenda = [s for s in salas
                 if s.funcao.nome not in ("Sala de Triagem", "Sala de Radiologia")]
 
-hoje    = date.today()
-fim_3m  = hoje + timedelta(days=90)
-total   = 0
-data    = hoje
+hoje        = date.today()
+inicio_mes  = hoje.replace(day=1)
+fim_mes     = (inicio_mes.replace(month=inicio_mes.month % 12 + 1, day=1)
+               if inicio_mes.month < 12
+               else inicio_mes.replace(year=inicio_mes.year + 1, month=1, day=1)
+               ) - timedelta(days=1)
+
+total = 0
+data  = inicio_mes
 
 print("\nGerando agendamentos", end="", flush=True)
 
-while data <= fim_3m:
+while data <= fim_mes and total < LIMITE:
     dia_str     = DIA_MAP[data.weekday()]
     profs_hoje  = [p for p in profissionais if dia_str in prof_dias_set[p.id]]
 
@@ -232,17 +238,18 @@ while data <= fim_3m:
         data += timedelta(days=1)
         continue
 
-    # Horário disponível de cada profissional neste dia (rastreado em memória)
     prof_livre: dict[int, time] = {p.id: INICIO_DIA for p in profs_hoje}
 
     random.shuffle(salas_agenda)
 
     for sala in salas_agenda:
-        h_sala = INICIO_DIA
+        if total >= LIMITE:
+            break
+        h_sala     = INICIO_DIA
         candidatos = list(profs_hoje)
         random.shuffle(candidatos)
 
-        while h_sala < FIM_DIA:
+        while h_sala < FIM_DIA and total < LIMITE:
             agendado = False
 
             for prof in candidatos:
@@ -266,16 +273,15 @@ while data <= fim_3m:
                     agendado            = True
                     break
                 except ValueError:
-                    continue  # conflito detectado pelo save() — tenta outro prof
+                    continue
 
             if not agendado:
-                # Nenhum prof cabe no horário atual; avança para o próximo disponível
                 proximos = [prof_livre[p.id] for p in candidatos
                             if prof_livre[p.id] > h_sala]
                 if proximos:
                     h_sala = min(proximos)
                 else:
-                    break  # ninguém mais disponível hoje nesta sala
+                    break
 
     data += timedelta(days=1)
     print(".", end="", flush=True)
