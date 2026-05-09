@@ -4,137 +4,177 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OdontoFlow 1.0 - Gestão Odontologica</title>
+  <title>{% block title %}OdontoFlow — Gestão Odontológica{% endblock %}</title>
 
-  <!-- Admin Theme CSS -->
   <link rel="stylesheet" href="{% static 'admin-theme.css' %}">
-  
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  
   <script src="https://unpkg.com/htmx.org@2.0.3"></script>
-
-  <script>
-    // Initialize Lucide Icons when DOM is ready
-    document.addEventListener('DOMContentLoaded', () => {
-      if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-      }
-    });
-
-    // Fecha modal (HTMX)
-    document.body?.addEventListener('closeModal', function () {
-      const modal = document.getElementById('quickAddModal');
-      if (!modal) return;
-      modal.classList.remove('show');
-      const body = document.getElementById('quickAddBody');
-      if (body) body.innerHTML = '';
-    });
-
-    // Accordion behavior
-    document.addEventListener('DOMContentLoaded', () => {
-      const accordionButtons = document.querySelectorAll('.accordion-button');
-      accordionButtons.forEach((button) => {
-        button.addEventListener('click', (e) => {
-          e.preventDefault();
-          
-          const parent = button.closest('.accordion-item');
-          const collapse = parent?.querySelector('.accordion-collapse');
-          if (!collapse) return;
-          
-          const isOpen = collapse.classList.contains('show');
-          
-          // Close siblings
-          const accordion = parent?.closest('.accordion');
-          accordion?.querySelectorAll('.accordion-collapse').forEach(col => {
-            if (col !== collapse && col.classList.contains('show')) {
-              col.classList.remove('show');
-              col.previousElementSibling?.querySelector('.accordion-button')?.setAttribute('aria-expanded', 'false');
-            }
-          });
-          
-          // Toggle current
-          if (isOpen) {
-            collapse.classList.remove('show');
-            button.setAttribute('aria-expanded', 'false');
-          } else {
-            collapse.classList.add('show');
-            button.setAttribute('aria-expanded', 'true');
-          }
-        });
-      });
-
-      // Close modal clicking outside
-      const modal = document.getElementById('quickAddModal');
-      if (modal) {
-        modal.addEventListener('click', (e) => {
-          if (e.target === modal) {
-            modal.classList.remove('show');
-          }
-        });
-      }
-    });
-  </script>
 </head>
-<body class="h-100">
-  <!-- Header -->
-  <nav class="navbar navbar-expand-lg">
-    <div class="container">
-      <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
-        <img src="{% static 'image/logo_medflow.jpeg' %}" alt="Logotipo OdontoFlow" style="height:24px;width:auto;">
-        OdontoFlow 1.0
+<body>
+
+  <!-- ── Navbar ─────────────────────────────────────────────────────────── -->
+  <nav class="navbar" style="position:relative;">
+    <div class="container navbar-inner">
+
+      <a class="navbar-brand" href="{% url 'home' %}">
+        <img src="{% static 'image/logo_medflow.jpeg' %}" alt="OdontoFlow" style="height:26px;width:auto;">
+        OdontoFlow
       </a>
 
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-              aria-controls="navbarNav" aria-expanded="false" aria-label="Alternar navegação">
-        <span class="navbar-toggler-icon"></span>
+      <!-- Mobile toggle -->
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menu" aria-expanded="false">
+        <i data-lucide="menu" width="20" height="20" style="margin:0;"></i>
       </button>
 
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          {% if user.is_authenticated %}
-            <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Administração</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'visualizar_agendamentos' %}">Agendamentos</a></li>
-            <li class="nav-item">
-              <a
-                class="nav-link"
-                href="https://app.powerbi.com/view?r=eyJrIjoiMTkwNGMwOGQtOGNkNC00ZWQ1LThjY2EtMjczNTE3Y2E2NWQwIiwidCI6IjdlOTNlMjg2LWIyOWEtNDQ1NC1hNDFhLWU4NDE5ZWM5ZGViNSJ9"
-                target="_blank"
-                rel="noopener"
-                title="Abrir painel estatístico no Power BI"
-              >Painel Estatístico</a>
-            </li>
-            <li class="nav-item"><a class="nav-link text-strong-yellow" href="{% url 'logout' %}">Sair</a></li>
-          {% else %}
-            <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Entrar</a></li>
-          {% endif %}
-        </ul>
-      </div>
+      <!-- Nav links -->
+      <ul class="navbar-nav ms-auto" id="navMenu">
+        {% if user.is_authenticated %}
+          <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}"><i data-lucide="layout-dashboard" width="14" height="14"></i> Administração</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'visualizar_agendamentos' %}"><i data-lucide="calendar-days" width="14" height="14"></i> Agendamentos</a></li>
+          <li class="nav-item">
+            <a class="nav-link" href="https://app.powerbi.com/view?r=eyJrIjoiMTkwNGMwOGQtOGNkNC00ZWQ1LThjY2EtMjczNTE3Y2E2NWQwIiwidCI6IjdlOTNlMjg2LWIyOWEtNDQ1NC1hNDFhLWU4NDE5ZWM5ZGViNSJ9"
+               target="_blank" rel="noopener noreferrer">
+              <i data-lucide="bar-chart-2" width="14" height="14"></i> Painel Estatístico
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-strong-yellow" href="{% url 'logout' %}">
+              <i data-lucide="log-out" width="14" height="14"></i> Sair
+            </a>
+          </li>
+        {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'login' %}">
+              <i data-lucide="log-in" width="14" height="14"></i> Entrar
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+
     </div>
   </nav>
 
-  <!-- Mensagens -->
-  <div class="container mt-2">
-    {% if messages %}
+  <!-- ── Flash messages ────────────────────────────────────────────────── -->
+  {% if messages %}
+    <div class="container" style="padding-top:12px;">
       {% for message in messages %}
-        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible"
+             role="alert" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+          <span>{{ message }}</span>
+          <button type="button" data-dismiss="alert" aria-label="Fechar"
+                  style="background:none;border:none;cursor:pointer;padding:0;line-height:1;color:inherit;opacity:.6;flex-shrink:0;">
+            <i data-lucide="x" width="16" height="16" style="margin:0;"></i>
+          </button>
         </div>
       {% endfor %}
-    {% endif %}
-  </div>
+    </div>
+  {% endif %}
 
-  <!-- Área rolável entre header e footer -->
-  <main id="app-main" class="h-100">
+  <!-- ── Main content ───────────────────────────────────────────────────── -->
+  <main id="app-main">
     {% block content %}{% endblock %}
   </main>
 
-  <!-- Footer fixo ao final da viewport -->
+  <!-- ── Footer ─────────────────────────────────────────────────────────── -->
   <footer class="site-footer">
     <div class="container">
-      <p class="mb-0">&copy; 2025 OdontoFlow 1.0 - Gestão de Salas Odontologicas</p>
+      <p class="mb-0">&copy; 2025 OdontoFlow — Gestão de Salas Odontológicas</p>
     </div>
   </footer>
+
+  <!-- ── Quick-add modal (HTMX) ─────────────────────────────────────────── -->
+  <div class="modal" id="quickAddModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="quickAddTitle">Adicionar</h5>
+          <button type="button" class="btn-close"
+                  onclick="document.getElementById('quickAddModal').classList.remove('show')"
+                  aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body" id="quickAddBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+      // ── Icons ──────────────────────────────────────────────────────────
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+
+      // ── Mobile nav toggle ──────────────────────────────────────────────
+      const navToggle = document.getElementById('navToggle');
+      const navMenu   = document.getElementById('navMenu');
+      if (navToggle && navMenu) {
+        navToggle.addEventListener('click', () => {
+          const open = navMenu.classList.toggle('open');
+          navToggle.setAttribute('aria-expanded', String(open));
+        });
+        navMenu.querySelectorAll('.nav-link').forEach(link =>
+          link.addEventListener('click', () => navMenu.classList.remove('open'))
+        );
+        document.addEventListener('click', e => {
+          if (!navToggle.contains(e.target) && !navMenu.contains(e.target))
+            navMenu.classList.remove('open');
+        });
+      }
+
+      // ── Alert dismiss ─────────────────────────────────────────────────
+      document.addEventListener('click', e => {
+        const btn = e.target.closest('[data-dismiss="alert"]');
+        if (btn) {
+          const alert = btn.closest('.alert');
+          if (alert) {
+            alert.style.transition = 'opacity 0.2s';
+            alert.style.opacity = '0';
+            setTimeout(() => alert.remove(), 200);
+          }
+        }
+      });
+
+      // ── HTMX close-modal event ────────────────────────────────────────
+      document.body.addEventListener('closeModal', () => {
+        const modal = document.getElementById('quickAddModal');
+        if (modal) modal.classList.remove('show');
+        const body = document.getElementById('quickAddBody');
+        if (body) body.innerHTML = '';
+      });
+
+      // ── Quick-add modal close on backdrop click ───────────────────────
+      const modal = document.getElementById('quickAddModal');
+      if (modal) {
+        modal.addEventListener('click', e => {
+          if (e.target === modal) modal.classList.remove('show');
+        });
+      }
+
+      // ── Accordion ─────────────────────────────────────────────────────
+      document.querySelectorAll('.accordion-button').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.preventDefault();
+          const item     = btn.closest('.accordion-item');
+          const collapse = item?.querySelector('.accordion-collapse');
+          if (!collapse) return;
+          const isOpen = collapse.classList.contains('show');
+          item.closest('.accordion, .andares-accordion')
+              ?.querySelectorAll('.accordion-collapse.show')
+              .forEach(c => {
+                if (c !== collapse) {
+                  c.classList.remove('show');
+                  c.previousElementSibling?.querySelector('.accordion-button')
+                   ?.setAttribute('aria-expanded', 'false');
+                }
+              });
+          collapse.classList.toggle('show', !isOpen);
+          btn.setAttribute('aria-expanded', String(!isOpen));
+        });
+      });
+
+    });
+  </script>
+
+  {% block extra_js %}{% endblock %}
+
 </body>
 </html>

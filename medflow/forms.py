@@ -2,12 +2,19 @@ from django import forms
 from django.core.exceptions import ValidationError
 from datetime import datetime, timedelta
 import unicodedata
+import logging
 import requests
 
 from .models import (
     AgendamentoSala, Andar, Equipamento, Especialidade, Profissional,
     Sala, Funcionalidade
 )
+
+logger = logging.getLogger(__name__)
+
+# Cache em memória: { ano: ["2026-01-01", "2026-04-21", ...] }
+# Sobrevive ao worker durante o ciclo de vida do processo.
+_feriados_cache: dict[int, dict[str, str]] = {}
 
 
 # ---------- util: normalização compatível com nome_norm ----------
@@ -38,32 +45,45 @@ class AgendamentoSalaForm(forms.ModelForm):
             'horario_inicio': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
         }
 
-    def verificar_feriado(self, data):
+    def _carregar_feriados(self, ano: int) -> dict[str, str] | None:
         """
-        Consulta a BrasilAPI para verificar se a data é feriado nacional
+        Retorna {date_str: nome} para o ano via BrasilAPI.
+        Usa cache em memória para evitar chamadas repetidas.
+        Retorna None se a API estiver indisponível e não houver cache.
         """
-        ano = data.year
+        if ano in _feriados_cache:
+            return _feriados_cache[ano]
+
         url = f"https://brasilapi.com.br/api/feriados/v1/{ano}"
-
         try:
-            response = requests.get(url, timeout=5)
+            response = requests.get(url, timeout=8)
             response.raise_for_status()
-            feriados = response.json()
-
-            data_formatada = data.strftime("%Y-%m-%d")
-
-            for feriado in feriados:
-                if feriado.get("date") == data_formatada:
-                    return feriado.get("name", "Feriado")
-
+            feriados_lista = response.json()
+            mapa = {f["date"]: f.get("name", "Feriado") for f in feriados_lista if "date" in f}
+            _feriados_cache[ano] = mapa
+            return mapa
+        except requests.RequestException as exc:
+            logger.warning("BrasilAPI indisponível para o ano %s: %s", ano, exc)
+            return None
+        except (ValueError, KeyError) as exc:
+            logger.warning("Resposta inesperada da BrasilAPI para %s: %s", ano, exc)
             return None
 
-        except requests.RequestException:
-            # Caso a API falhe, você pode:
-            # 1. permitir continuar
-            # 2. bloquear
-            # 3. registrar log
-            return None
+    def verificar_feriado(self, data) -> str | None:
+        """
+        Retorna o nome do feriado se `data` for feriado nacional, ou None.
+        Lança ValidationError se a API estiver indisponível (sem cache),
+        impedindo o agendamento até que a verificação possa ser feita.
+        """
+        feriados = self._carregar_feriados(data.year)
+
+        if feriados is None:
+            raise ValidationError(
+                "Não foi possível verificar feriados no momento. "
+                "Tente novamente em instantes."
+            )
+
+        return feriados.get(data.strftime("%Y-%m-%d"))
 
     def clean(self):
         cleaned_data = super().clean()

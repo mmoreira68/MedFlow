@@ -1,147 +1,91 @@
-<!DOCTYPE html>
+{% extends 'base.html' %}
 
-<html lang="pt-br">
+{% block title %}Salas — OdontoFlow{% endblock %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>Salas de Ambulatório</title>
-</head>
+{% block content %}
+<div class="container" style="padding-top:24px;padding-bottom:48px;">
 
-<body>
-
-    <h1>Salas de Ambulatório</h1>
-
-    {% if sala_equipamentos %}
-
-        {% regroup sala_equipamentos by sala.andar as agrupamento_andares %}
-
-        {% for grupo in agrupamento_andares %}
-           
-            <h2 style="margin-left: 30px;">{{ grupo.grouper }}. Andar</h2>
-
-            {% regroup grupo.list by sala as agrupamento_salas %}
-
-            {% for sala in agrupamento_salas %}
-
-                <p style="margin-left: 60px;">
-
-                    <strong>Sala: {{ sala.grouper.nome }} <br> Função: {{ sala.grouper.funcao }} <br> Equipamentos:
-
-                        {% with sala.list|dictsort:"equipamento.nome" as equipamentos_ordenados %}
-
-                            {% for item in equipamentos_ordenados %}
-
-                                {{ item.equipamento.nome }}{% if not forloop.last %} / {% endif %}
-
-                            {% endfor %}
-                        
-                        {% endwith %}
-
-                    </strong>
-
-                </p>
-                
-            {% endfor %}
-        
-        {% endfor %}
-
-    {% else %}
-    
-        <p>Nenhuma sala encontrada.</p>
-    
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
+    <div>
+      <h2 style="margin:0;">Salas do Consultório</h2>
+      <p class="text-muted text-sm" style="margin:4px 0 0;">Equipamentos e funcionalidades por andar</p>
+    </div>
+    {% if user.is_authenticated %}
+      <a href="{% url 'dashboard' %}" class="btn btn-outline-primary btn-sm">
+        <i data-lucide="settings" width="14" height="14"></i> Gerenciar
+      </a>
     {% endif %}
+  </div>
 
-</body>
+  {% if sala_equipamentos %}
 
-</html>
+    {% regroup sala_equipamentos by sala.andar as andares %}
 
-<!--
-========================================================================
-========================================================================
+    {% for andar_grupo in andares %}
+      <div style="margin-bottom:32px;">
 
-<!-- <!DOCTYPE html>
+        <!-- Cabeçalho do andar -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--color-primary-light);">
+          <i data-lucide="building-2" width="18" height="18" style="color:var(--color-primary);flex-shrink:0;"></i>
+          <h3 style="margin:0;font-size:16px;color:var(--color-primary);">{{ andar_grupo.grouper }}</h3>
+        </div>
 
-<html lang="pt-br">
+        <!-- Grid de salas -->
+        {% regroup andar_grupo.list by sala as salas_grupo %}
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;">
 
-<head>
-    <meta charset="UTF-8">
-    <title>Salas de Ambulatório</title>
-</head>
+          {% for sala_item in salas_grupo %}
+            <div class="card" style="transition:box-shadow .15s;">
 
-<body>
+              <div class="card-header" style="padding:12px 16px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <i data-lucide="door-open" width="15" height="15" style="color:var(--color-primary);flex-shrink:0;"></i>
+                  <div>
+                    <strong style="font-size:13px;">{{ sala_item.grouper.nome }}</strong>
+                    <span class="text-muted" style="font-size:11px;margin-left:6px;">Nº {{ sala_item.grouper.numero }}</span>
+                  </div>
+                </div>
+                <span style="font-size:11px;background:var(--color-primary-light);color:var(--color-primary);padding:2px 8px;border-radius:99px;white-space:nowrap;">
+                  {{ sala_item.grouper.funcao }}
+                </span>
+              </div>
 
-    <h1>Salas de Ambulatório</h1>
-
-    {% if sala_equipamentos %}
-
-        {% regroup sala_equipamentos by sala.andar as agrupamento_andares %}
-
-        {% for grupo in agrupamento_andares %}
-
-            <h2 style="margin-left: 30px;">{{ grupo.grouper }}. Andar</h2>
-
-            {% regroup grupo.list by sala as agrupamento_salas %}
-
-            {% for sala in agrupamento_salas %}
-                <p style="margin-left: 60px;">
-                    <strong>Sala: {{ sala.grouper.nome }} <br> Função: {{ sala.grouper.funcao.nome }} <br> Equipamento(s):
-                        {% for item in sala.list %}
-                            {{ item.equipamento.nome }}{% if not forloop.last %} / {% endif %}
-                        {% endfor %}
-                    </strong>
+              <div class="card-body" style="padding:12px 16px;">
+                <p style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--color-text-secondary);margin-bottom:8px;">
+                  <i data-lucide="wrench" width="12" height="12"></i> Equipamentos
                 </p>
-            {% endfor %}
+                <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                  {% with sala_item.list|dictsort:"equipamento.nome" as equipamentos_ordenados %}
+                    {% for item in equipamentos_ordenados %}
+                      <span style="font-size:11px;background:var(--color-bg-overlay);border:1px solid var(--color-border);padding:2px 8px;border-radius:4px;white-space:nowrap;">
+                        {{ item.equipamento.nome }}
+                      </span>
+                    {% endfor %}
+                  {% endwith %}
+                </div>
+              </div>
 
-        {% endfor %}
+              {% if user.is_authenticated %}
+                <div class="card-footer" style="padding:8px 16px;text-align:right;">
+                  <a href="{% url 'agendar_sala' sala_item.grouper.id %}" class="btn btn-sm btn-primary">
+                    <i data-lucide="calendar-plus" width="13" height="13"></i> Agendar
+                  </a>
+                </div>
+              {% endif %}
 
-    {% else %}
+            </div>
+          {% endfor %}
 
-        <p>Nenhuma sala encontrada.</p>
+        </div>
+      </div>
+    {% endfor %}
 
-    {% endif %}
+  {% else %}
+    <div class="alert alert-info" style="display:flex;align-items:center;gap:10px;">
+      <i data-lucide="info" width="18" height="18" style="flex-shrink:0;"></i>
+      Nenhuma sala encontrada. {% if user.is_authenticated %}<a href="{% url 'dashboard' %}">Cadastre andares e salas no painel.</a>{% endif %}
+    </div>
+  {% endif %}
 
-</body>
-
-</html>
-
-========================================================================
-
-<!DOCTYPE html>
-
-<html lang="pt-br">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Salas de Ambulatório</title>
-</head>
-
-<body>
-
-    <h1>Salas de Ambulatório</h1>
-
-    {% if sala_equipamentos %}
-
-        {% regroup sala_equipamentos by sala.andar as agrupamento_andares %}
-
-        {% for grupo in agrupamento_andares %}
-           
-            <h2 style="margin-left: 30px;">{{ grupo.grouper }}. Andar</h2>
-
-            {% for item in grupo.list %}
-                <p style="margin-left: 60px;">
-                    <strong>{{ item.sala.nome }} | {{ item.equipamento.nome }} | {{ item.sala.funcao }}</strong>
-                </p>
-            {% endfor %}
-        
-        {% endfor %}
-
-    {% else %}
-    
-        <p>Nenhuma sala encontrada.</p>
-    
-    {% endif %}
-
-</body>
-
-</html>
--->
+</div>
+{% endblock %}
