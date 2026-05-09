@@ -19,3 +19,10 @@ if password and not User.objects.filter(username=username).exists():
 else:
     print('Superusuário já existe ou senha não configurada.')
 "
+
+# Popula o banco apenas se RUN_POPULATE=true
+if [ "$RUN_POPULATE" = "true" ]; then
+    echo "==> Populando banco de dados..."
+    python populate_medflow_db.py
+    echo "==> Populate concluído."
+fi
