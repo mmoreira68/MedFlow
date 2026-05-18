@@ -185,7 +185,7 @@ class ProfissionalForm(forms.ModelForm):
         labels = {
             'nome': 'Nome',
             'especialidade': 'Especialidade',
-            'crm': 'CRM',
+            'crm': 'CRO',
         }
         widgets = {
             "nome": forms.TextInput(attrs={"class": "form-control", "required": True}),
